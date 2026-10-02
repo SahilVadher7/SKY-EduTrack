@@ -8,7 +8,7 @@
   
   <script>
     /**
-     * APPS SCRIPT API BRIDGE (ROBUST CHAIR / PROXY)
+     * APPS SCRIPT JSONP API BRIDGE (100% CORS-FREE)
      */
     window.SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzgh5DnhrBZtPkyo82UOK7Yna5aT0f5r7e31JXrVNzbIp1wr5fg9u2s1vewJ5bbH5aB/exec";
 
@@ -29,23 +29,37 @@
 
     ScriptRunBridge.prototype.callApi = function(action, payload) {
       var self = this;
-      var url = window.SCRIPT_API_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
+      var cbName = "jsonp_cb_" + Math.round(100000 * Math.random()) + "_" + Date.now();
+      
+      var script = document.createElement("script");
+      var cleanup = function() {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        delete window[cbName];
+      };
 
-      fetch(url)
-        .then(function(res) { return res.json(); })
-        .then(function(json) {
-          if (json && json.success) {
-            self.successHandler(json.data);
-          } else {
-            self.failureHandler(new Error((json && json.message) ? json.message : "API execution error"));
-          }
-        })
-        .catch(function(err) {
-          self.failureHandler(err);
-        });
+      // Define callback function in global scope
+      window[cbName] = function(json) {
+        cleanup();
+        if (json && json.success) {
+          self.successHandler(json.data);
+        } else {
+          self.failureHandler(new Error((json && json.message) ? json.message : "API execution error"));
+        }
+      };
+
+      script.onerror = function() {
+        cleanup();
+        self.failureHandler(new Error("Network request failed while connecting to Google Apps Script."));
+      };
+
+      var query = "?action=" + encodeURIComponent(action) +
+                  "&payload=" + encodeURIComponent(JSON.stringify(payload || {})) +
+                  "&callback=" + encodeURIComponent(cbName);
+
+      script.src = window.SCRIPT_API_URL + query;
+      document.head.appendChild(script);
     };
 
-    // Auto-proxy all function calls onto the bridge instance
     function createRunProxy(initialBridge) {
       var bridge = initialBridge || new ScriptRunBridge();
       return new Proxy(bridge, {
@@ -62,12 +76,10 @@
               return createRunProxy(target);
             };
           }
-          // Any backend function called on google.script.run
           return function() {
             var args = Array.prototype.slice.call(arguments);
             var payload = {};
 
-            // Map standard payloads based on method name
             if (prop === "getGlobalBootstrapData") payload = {};
             else if (prop === "verifyAccess") payload = { type: args[0], passcode: args[1] };
             else if (prop === "getStudentDashboardData") payload = { studentId: args[0] };
