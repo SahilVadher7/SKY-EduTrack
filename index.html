@@ -8,8 +8,7 @@
   
   <script>
     /**
-     * APPS SCRIPT API BRIDGE
-     * Replaces google.script.run with browser fetch calls
+     * APPS SCRIPT API BRIDGE (ROBUST CHAIR / PROXY)
      */
     window.SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzgh5DnhrBZtPkyo82UOK7Yna5aT0f5r7e31JXrVNzbIp1wr5fg9u2s1vewJ5bbH5aB/exec";
 
@@ -31,14 +30,14 @@
     ScriptRunBridge.prototype.callApi = function(action, payload) {
       var self = this;
       var url = window.SCRIPT_API_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
-      
+
       fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(json) {
           if (json && json.success) {
             self.successHandler(json.data);
           } else {
-            self.failureHandler(new Error((json && json.message) ? json.message : "API execution failed"));
+            self.failureHandler(new Error((json && json.message) ? json.message : "API execution error"));
           }
         })
         .catch(function(err) {
@@ -46,60 +45,87 @@
         });
     };
 
+    // Auto-proxy all function calls onto the bridge instance
+    function createRunProxy(initialBridge) {
+      var bridge = initialBridge || new ScriptRunBridge();
+      return new Proxy(bridge, {
+        get: function(target, prop) {
+          if (prop === "withSuccessHandler") {
+            return function(fn) {
+              target.successHandler = fn;
+              return createRunProxy(target);
+            };
+          }
+          if (prop === "withFailureHandler") {
+            return function(fn) {
+              target.failureHandler = fn;
+              return createRunProxy(target);
+            };
+          }
+          // Any backend function called on google.script.run
+          return function() {
+            var args = Array.prototype.slice.call(arguments);
+            var payload = {};
+
+            // Map standard payloads based on method name
+            if (prop === "getGlobalBootstrapData") payload = {};
+            else if (prop === "verifyAccess") payload = { type: args[0], passcode: args[1] };
+            else if (prop === "getStudentDashboardData") payload = { studentId: args[0] };
+            else if (prop === "getOnlineTestsCatalog") payload = { selectedClass: args[0], selectedSubject: args[1] };
+            else if (prop === "verifyTestPasscode") payload = { testId: args[0], passcode: args[1] };
+            else if (prop === "getTestQuestionsByTestId") payload = { testId: args[0] };
+            else if (prop === "getDiagnosticTestForClass") payload = { targetClass: args[0] };
+            else if (prop === "submitDiagnosticAssessment") payload = args[0];
+            else if (prop === "submitOnlineTestAnswers") payload = args[0];
+            else if (prop === "getStudyMaterials") payload = { selectedClass: args[0], selectedSubject: args[1] };
+            else if (prop === "registerOnlineInquiry") payload = args[0];
+            else if (prop === "getDailyReportsForDateAdmin") payload = { targetDate: args[0], adminToken: args[1] };
+            else if (prop === "batchSaveDailyReports") payload = { reports: args[0], adminToken: args[1] };
+            else if (prop === "getAllDailyReportsAdmin") payload = { limit: args[0] };
+            else if (prop === "updateDailyReportAdmin") payload = { reportId: args[0], fields: args[1], adminToken: args[2] };
+            else if (prop === "deleteDailyReportAdmin") payload = { reportId: args[0], adminToken: args[1] };
+            else if (prop === "setActiveBillingMonthAdmin") payload = { monthYear: args[0], adminToken: args[1] };
+            else if (prop === "getFeeLedgerWithAutoSync") payload = { monthYear: args[0] };
+            else if (prop === "batchUpdateFeeLedger") payload = { updates: args[0], adminToken: args[1] };
+            else if (prop === "getPendingInquiriesAdmin") payload = {};
+            else if (prop === "enrollInquiryToRoster") payload = { inquiryId: args[0], baseFee: args[1], adminToken: args[2] };
+            else if (prop === "getAllStudentsAdmin") payload = {};
+            else if (prop === "addStudent") payload = { student: args[0], adminToken: args[1] };
+            else if (prop === "updateStudent") payload = { studentId: args[0], fields: args[1], adminToken: args[2] };
+            else if (prop === "deleteStudentAdmin") payload = { studentId: args[0], adminToken: args[1] };
+            else if (prop === "addStudyMaterial") payload = { material: args[0], adminToken: args[1] };
+            else if (prop === "deleteStudyMaterial") payload = { materialId: args[0], adminToken: args[1] };
+            else if (prop === "addNotice") payload = { message: args[0], adminToken: args[1] };
+            else if (prop === "getAllNoticesAdmin") payload = {};
+            else if (prop === "toggleNoticeStatus") payload = { noticeId: args[0], isActive: args[1], adminToken: args[2] };
+            else if (prop === "deleteNoticeAdmin") payload = { noticeId: args[0], adminToken: args[1] };
+            else if (prop === "addTestMarksRecord") payload = { record: args[0], adminToken: args[1] };
+            else if (prop === "getAllTestMarksAdmin") payload = {};
+            else if (prop === "deleteTestMarkAdmin") payload = { testId: args[0], adminToken: args[1] };
+            else if (prop === "saveAcademyConfigAdmin") payload = { config: args[0], adminToken: args[1] };
+            else if (prop === "getShowcaseMediaList") payload = {};
+            else if (prop === "addShowcaseMediaAdmin") payload = { media: args[0], adminToken: args[1] };
+            else if (prop === "deleteShowcaseMediaAdmin") payload = { mediaId: args[0], adminToken: args[1] };
+            else if (prop === "getOnlineTestsAdminList") payload = { adminToken: args[0] };
+            else if (prop === "updateOnlineTestSettingsAdmin") payload = { testId: args[0], settings: args[1], adminToken: args[2] };
+            else if (prop === "createOnlineTestAdmin") payload = { testObj: args[0], adminToken: args[1] };
+            else if (prop === "toggleOnlineTestStatusAdmin") payload = { testId: args[0], isActive: args[1], adminToken: args[2] };
+            else if (prop === "deleteOnlineTestAdmin") payload = { testId: args[0], adminToken: args[1] };
+            else if (prop === "getTestQuestionsAdmin") payload = { testId: args[0], adminToken: args[1] };
+            else if (prop === "batchSaveTestQuestionsAdmin") payload = { testId: args[0], questions: args[1], adminToken: args[2] };
+
+            target.callApi(prop, payload);
+          };
+        }
+      });
+    }
+
     window.google = {
       script: {
-        run: {
-          withSuccessHandler: function(fn) { return new ScriptRunBridge().withSuccessHandler(fn); },
-          withFailureHandler: function(fn) { return new ScriptRunBridge().withFailureHandler(fn); },
-          getGlobalBootstrapData: function() { new ScriptRunBridge().callApi("getGlobalBootstrapData", {}); },
-          verifyAccess: function(type, passcode) { new ScriptRunBridge().callApi("verifyAccess", { type: type, passcode: passcode }); },
-          getStudentDashboardData: function(id) { new ScriptRunBridge().callApi("getStudentDashboardData", { studentId: id }); },
-          getOnlineTestsCatalog: function(c, s) { new ScriptRunBridge().callApi("getOnlineTestsCatalog", { selectedClass: c, selectedSubject: s }); },
-          verifyTestPasscode: function(tid, pass) { new ScriptRunBridge().callApi("verifyTestPasscode", { testId: tid, passcode: pass }); },
-          getTestQuestionsByTestId: function(tid) { new ScriptRunBridge().callApi("getTestQuestionsByTestId", { testId: tid }); },
-          getDiagnosticTestForClass: function(cls) { new ScriptRunBridge().callApi("getDiagnosticTestForClass", { targetClass: cls }); },
-          submitDiagnosticAssessment: function(payload) { new ScriptRunBridge().callApi("submitDiagnosticAssessment", payload); },
-          submitOnlineTestAnswers: function(payload) { new ScriptRunBridge().callApi("submitOnlineTestAnswers", payload); },
-          getStudyMaterials: function(c, s) { new ScriptRunBridge().callApi("getStudyMaterials", { selectedClass: c, selectedSubject: s }); },
-          registerOnlineInquiry: function(payload) { new ScriptRunBridge().callApi("registerOnlineInquiry", payload); },
-          getDailyReportsForDateAdmin: function(d, t) { new ScriptRunBridge().callApi("getDailyReportsForDateAdmin", { targetDate: d, adminToken: t }); },
-          batchSaveDailyReports: function(r, t) { new ScriptRunBridge().callApi("batchSaveDailyReports", { reports: r, adminToken: t }); },
-          getAllDailyReportsAdmin: function(lim) { new ScriptRunBridge().callApi("getAllDailyReportsAdmin", { limit: lim }); },
-          updateDailyReportAdmin: function(id, f, t) { new ScriptRunBridge().callApi("updateDailyReportAdmin", { reportId: id, fields: f, adminToken: t }); },
-          deleteDailyReportAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteDailyReportAdmin", { reportId: id, adminToken: t }); },
-          setActiveBillingMonthAdmin: function(m, t) { new ScriptRunBridge().callApi("setActiveBillingMonthAdmin", { monthYear: m, adminToken: t }); },
-          getFeeLedgerWithAutoSync: function(m) { new ScriptRunBridge().callApi("getFeeLedgerWithAutoSync", { monthYear: m }); },
-          batchUpdateFeeLedger: function(u, t) { new ScriptRunBridge().callApi("batchUpdateFeeLedger", { updates: u, adminToken: t }); },
-          getPendingInquiriesAdmin: function() { new ScriptRunBridge().callApi("getPendingInquiriesAdmin", {}); },
-          enrollInquiryToRoster: function(id, fee, t) { new ScriptRunBridge().callApi("enrollInquiryToRoster", { inquiryId: id, baseFee: fee, adminToken: t }); },
-          getAllStudentsAdmin: function() { new ScriptRunBridge().callApi("getAllStudentsAdmin", {}); },
-          addStudent: function(s, t) { new ScriptRunBridge().callApi("addStudent", { student: s, adminToken: t }); },
-          updateStudent: function(id, f, t) { new ScriptRunBridge().callApi("updateStudent", { studentId: id, fields: f, adminToken: t }); },
-          deleteStudentAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteStudentAdmin", { studentId: id, adminToken: t }); },
-          addStudyMaterial: function(m, t) { new ScriptRunBridge().callApi("addStudyMaterial", { material: m, adminToken: t }); },
-          deleteStudyMaterial: function(id, t) { new ScriptRunBridge().callApi("deleteStudyMaterial", { materialId: id, adminToken: t }); },
-          addNotice: function(msg, t) { new ScriptRunBridge().callApi("addNotice", { message: msg, adminToken: t }); },
-          getAllNoticesAdmin: function() { new ScriptRunBridge().callApi("getAllNoticesAdmin", {}); },
-          toggleNoticeStatus: function(id, st, t) { new ScriptRunBridge().callApi("toggleNoticeStatus", { noticeId: id, isActive: st, adminToken: t }); },
-          deleteNoticeAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteNoticeAdmin", { noticeId: id, adminToken: t }); },
-          addTestMarksRecord: function(rec, t) { new ScriptRunBridge().callApi("addTestMarksRecord", { record: rec, adminToken: t }); },
-          getAllTestMarksAdmin: function() { new ScriptRunBridge().callApi("getAllTestMarksAdmin", {}); },
-          deleteTestMarkAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteTestMarkAdmin", { testId: id, adminToken: t }); },
-          saveAcademyConfigAdmin: function(cfg, t) { new ScriptRunBridge().callApi("saveAcademyConfigAdmin", { config: cfg, adminToken: t }); },
-          getShowcaseMediaList: function() { new ScriptRunBridge().callApi("getShowcaseMediaList", {}); },
-          addShowcaseMediaAdmin: function(m, t) { new ScriptRunBridge().callApi("addShowcaseMediaAdmin", { media: m, adminToken: t }); },
-          deleteShowcaseMediaAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteShowcaseMediaAdmin", { mediaId: id, adminToken: t }); },
-          getOnlineTestsAdminList: function(t) { new ScriptRunBridge().callApi("getOnlineTestsAdminList", { adminToken: t }); },
-          createOnlineTestAdmin: function(obj, t) { new ScriptRunBridge().callApi("createOnlineTestAdmin", { testObj: obj, adminToken: t }); },
-          toggleOnlineTestStatusAdmin: function(id, st, t) { new ScriptRunBridge().callApi("toggleOnlineTestStatusAdmin", { testId: id, isActive: st, adminToken: t }); },
-          deleteOnlineTestAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteOnlineTestAdmin", { testId: id, adminToken: t }); },
-          getTestQuestionsAdmin: function(id, t) { new ScriptRunBridge().callApi("getTestQuestionsAdmin", { testId: id, adminToken: t }); },
-          batchSaveTestQuestionsAdmin: function(id, q, t) { new ScriptRunBridge().callApi("batchSaveTestQuestionsAdmin", { testId: id, questions: q, adminToken: t }); }
-        }
+        run: createRunProxy()
       }
     };
   </script>
-
   <style>
     :root {
       --bg: #0B0E14;
