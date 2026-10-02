@@ -1,1 +1,4045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SKY EduTrack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <script>
+    /**
+     * APPS SCRIPT API BRIDGE
+     * Replaces google.script.run with browser fetch calls
+     */
+    window.SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzgh5DnhrBZtPkyo82UOK7Yna5aT0f5r7e31JXrVNzbIp1wr5fg9u2s1vewJ5bbH5aB/exec";
 
+    function ScriptRunBridge() {
+      this.successHandler = function() {};
+      this.failureHandler = function(err) { console.error("API Error:", err); };
+    }
+
+    ScriptRunBridge.prototype.withSuccessHandler = function(fn) {
+      this.successHandler = fn;
+      return this;
+    };
+
+    ScriptRunBridge.prototype.withFailureHandler = function(fn) {
+      this.failureHandler = fn;
+      return this;
+    };
+
+    ScriptRunBridge.prototype.callApi = function(action, payload) {
+      var self = this;
+      var url = window.SCRIPT_API_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
+      
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+          if (json && json.success) {
+            self.successHandler(json.data);
+          } else {
+            self.failureHandler(new Error((json && json.message) ? json.message : "API execution failed"));
+          }
+        })
+        .catch(function(err) {
+          self.failureHandler(err);
+        });
+    };
+
+    window.google = {
+      script: {
+        run: {
+          withSuccessHandler: function(fn) { return new ScriptRunBridge().withSuccessHandler(fn); },
+          withFailureHandler: function(fn) { return new ScriptRunBridge().withFailureHandler(fn); },
+          getGlobalBootstrapData: function() { new ScriptRunBridge().callApi("getGlobalBootstrapData", {}); },
+          verifyAccess: function(type, passcode) { new ScriptRunBridge().callApi("verifyAccess", { type: type, passcode: passcode }); },
+          getStudentDashboardData: function(id) { new ScriptRunBridge().callApi("getStudentDashboardData", { studentId: id }); },
+          getOnlineTestsCatalog: function(c, s) { new ScriptRunBridge().callApi("getOnlineTestsCatalog", { selectedClass: c, selectedSubject: s }); },
+          verifyTestPasscode: function(tid, pass) { new ScriptRunBridge().callApi("verifyTestPasscode", { testId: tid, passcode: pass }); },
+          getTestQuestionsByTestId: function(tid) { new ScriptRunBridge().callApi("getTestQuestionsByTestId", { testId: tid }); },
+          getDiagnosticTestForClass: function(cls) { new ScriptRunBridge().callApi("getDiagnosticTestForClass", { targetClass: cls }); },
+          submitDiagnosticAssessment: function(payload) { new ScriptRunBridge().callApi("submitDiagnosticAssessment", payload); },
+          submitOnlineTestAnswers: function(payload) { new ScriptRunBridge().callApi("submitOnlineTestAnswers", payload); },
+          getStudyMaterials: function(c, s) { new ScriptRunBridge().callApi("getStudyMaterials", { selectedClass: c, selectedSubject: s }); },
+          registerOnlineInquiry: function(payload) { new ScriptRunBridge().callApi("registerOnlineInquiry", payload); },
+          getDailyReportsForDateAdmin: function(d, t) { new ScriptRunBridge().callApi("getDailyReportsForDateAdmin", { targetDate: d, adminToken: t }); },
+          batchSaveDailyReports: function(r, t) { new ScriptRunBridge().callApi("batchSaveDailyReports", { reports: r, adminToken: t }); },
+          getAllDailyReportsAdmin: function(lim) { new ScriptRunBridge().callApi("getAllDailyReportsAdmin", { limit: lim }); },
+          updateDailyReportAdmin: function(id, f, t) { new ScriptRunBridge().callApi("updateDailyReportAdmin", { reportId: id, fields: f, adminToken: t }); },
+          deleteDailyReportAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteDailyReportAdmin", { reportId: id, adminToken: t }); },
+          setActiveBillingMonthAdmin: function(m, t) { new ScriptRunBridge().callApi("setActiveBillingMonthAdmin", { monthYear: m, adminToken: t }); },
+          getFeeLedgerWithAutoSync: function(m) { new ScriptRunBridge().callApi("getFeeLedgerWithAutoSync", { monthYear: m }); },
+          batchUpdateFeeLedger: function(u, t) { new ScriptRunBridge().callApi("batchUpdateFeeLedger", { updates: u, adminToken: t }); },
+          getPendingInquiriesAdmin: function() { new ScriptRunBridge().callApi("getPendingInquiriesAdmin", {}); },
+          enrollInquiryToRoster: function(id, fee, t) { new ScriptRunBridge().callApi("enrollInquiryToRoster", { inquiryId: id, baseFee: fee, adminToken: t }); },
+          getAllStudentsAdmin: function() { new ScriptRunBridge().callApi("getAllStudentsAdmin", {}); },
+          addStudent: function(s, t) { new ScriptRunBridge().callApi("addStudent", { student: s, adminToken: t }); },
+          updateStudent: function(id, f, t) { new ScriptRunBridge().callApi("updateStudent", { studentId: id, fields: f, adminToken: t }); },
+          deleteStudentAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteStudentAdmin", { studentId: id, adminToken: t }); },
+          addStudyMaterial: function(m, t) { new ScriptRunBridge().callApi("addStudyMaterial", { material: m, adminToken: t }); },
+          deleteStudyMaterial: function(id, t) { new ScriptRunBridge().callApi("deleteStudyMaterial", { materialId: id, adminToken: t }); },
+          addNotice: function(msg, t) { new ScriptRunBridge().callApi("addNotice", { message: msg, adminToken: t }); },
+          getAllNoticesAdmin: function() { new ScriptRunBridge().callApi("getAllNoticesAdmin", {}); },
+          toggleNoticeStatus: function(id, st, t) { new ScriptRunBridge().callApi("toggleNoticeStatus", { noticeId: id, isActive: st, adminToken: t }); },
+          deleteNoticeAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteNoticeAdmin", { noticeId: id, adminToken: t }); },
+          addTestMarksRecord: function(rec, t) { new ScriptRunBridge().callApi("addTestMarksRecord", { record: rec, adminToken: t }); },
+          getAllTestMarksAdmin: function() { new ScriptRunBridge().callApi("getAllTestMarksAdmin", {}); },
+          deleteTestMarkAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteTestMarkAdmin", { testId: id, adminToken: t }); },
+          saveAcademyConfigAdmin: function(cfg, t) { new ScriptRunBridge().callApi("saveAcademyConfigAdmin", { config: cfg, adminToken: t }); },
+          getShowcaseMediaList: function() { new ScriptRunBridge().callApi("getShowcaseMediaList", {}); },
+          addShowcaseMediaAdmin: function(m, t) { new ScriptRunBridge().callApi("addShowcaseMediaAdmin", { media: m, adminToken: t }); },
+          deleteShowcaseMediaAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteShowcaseMediaAdmin", { mediaId: id, adminToken: t }); },
+          getOnlineTestsAdminList: function(t) { new ScriptRunBridge().callApi("getOnlineTestsAdminList", { adminToken: t }); },
+          createOnlineTestAdmin: function(obj, t) { new ScriptRunBridge().callApi("createOnlineTestAdmin", { testObj: obj, adminToken: t }); },
+          toggleOnlineTestStatusAdmin: function(id, st, t) { new ScriptRunBridge().callApi("toggleOnlineTestStatusAdmin", { testId: id, isActive: st, adminToken: t }); },
+          deleteOnlineTestAdmin: function(id, t) { new ScriptRunBridge().callApi("deleteOnlineTestAdmin", { testId: id, adminToken: t }); },
+          getTestQuestionsAdmin: function(id, t) { new ScriptRunBridge().callApi("getTestQuestionsAdmin", { testId: id, adminToken: t }); },
+          batchSaveTestQuestionsAdmin: function(id, q, t) { new ScriptRunBridge().callApi("batchSaveTestQuestionsAdmin", { testId: id, questions: q, adminToken: t }); }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg: #0B0E14;
+      --surface: #151921;
+      --surface-subtle: #1E232E;
+      --border: #2D3342;
+      --border-dark: #3F4759;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-light: #6B7280;
+      --accent: #F9FAFB;
+      --accent-invert: #111827;
+      --green: #10B981;
+      --green-bg: rgba(16, 185, 129, 0.2);
+      --amber: #F59E0B;
+      --amber-bg: rgba(245, 158, 11, 0.2);
+      --red: #EF4444;
+      --red-bg: rgba(239, 68, 68, 0.2);
+      --indigo: #6366F1;
+      --indigo-bg: rgba(99, 102, 241, 0.2);
+      --absent: #6B7280;
+      --absent-bg: rgba(107, 114, 128, 0.2);
+      --toggle-btn-bg: #262D3D;
+      --toggle-btn-text: #F3F4F6;
+      --toggle-btn-border: #4B5563;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #F8F9FA;
+      --surface: #FFFFFF;
+      --surface-subtle: #F1F3F5;
+      --border: #E5E7EB;
+      --border-dark: #D1D5DB;
+      --text: #111827;
+      --text-muted: #6B7280;
+      --text-light: #9CA3AF;
+      --accent: #111827;
+      --accent-invert: #FFFFFF;
+      --green-bg: #ECFDF5;
+      --amber-bg: #FFFBEB;
+      --red-bg: #FEF2F2;
+      --indigo-bg: #EEF2FF;
+      --absent-bg: #F3F4F6;
+      --toggle-btn-bg: #EEF2F6;
+      --toggle-btn-text: #1F2937;
+      --toggle-btn-border: #D1D5DB;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+    html, body { overscroll-behavior-x: contain; touch-action: pan-y pinch-zoom; }
+    body { background-color: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; overflow-x: hidden; padding-bottom: 74px; }
+
+    .app-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px; position: sticky; top: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .header-top-actions { position: absolute; right: 16px; top: 16px; display: flex; align-items: center; gap: 8px; }
+    .center-branding { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; text-align: center; }
+    .brand-logo-img { height: 140px; width: auto; max-width: 320px; object-fit: contain; margin: 0 auto; }
+    .brand-subtext { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; margin-top: 4px; text-transform: uppercase; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent; text-decoration: none; }
+    .btn:active { transform: scale(0.97); }
+    .btn-dark { background: var(--text); color: var(--accent-invert); }
+    .btn-outline { background: transparent; border-color: var(--border-dark); color: var(--text); }
+    .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-success { background: var(--green); color: #fff; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 16px; }
+
+    .notice-marquee { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+    .notice-tag { background: var(--red); color: #fff; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+
+    .nav-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--surface-subtle); padding: 5px; border-radius: var(--radius-md); margin-bottom: 20px; }
+    .nav-tab-btn { padding: 10px 4px; text-align: center; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.2s ease; }
+    .nav-tab-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+    .nav-tab-dashboard-highlight { background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(16, 185, 129, 0.18)) !important; color: #F9FAFB !important; border: 1.5px solid #6366F1 !important; }
+    .nav-tab-dashboard-highlight.active { background: var(--surface) !important; border-color: var(--green) !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+    .card-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+    .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+    .badge-absent { background: var(--absent-bg); color: var(--absent); border: 1px solid var(--absent); }
+
+    .trajectory-grid { display: grid; grid-template-columns: repeat(4, 1fr) 1.2fr; gap: 8px; text-align: center; margin-top: 10px; }
+    .traj-box { background: var(--surface-subtle); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .traj-val { font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
+    .traj-lbl { font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; text-transform: uppercase; }
+
+    .input-group { margin-bottom: 12px; }
+    .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .input-control { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-dark); background: var(--surface); color: var(--text); font-size: 0.9rem; outline: none; }
+    .input-control:focus { border-color: var(--accent); }
+
+    .admin-subtabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .admin-subtab-btn { white-space: nowrap; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; background: var(--surface-subtle); color: var(--text-muted); border: none; cursor: pointer; }
+    .admin-subtab-btn.active { background: var(--text); color: var(--accent-invert); }
+
+    .clean-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+    .clean-table th { text-align: left; padding: 8px; background: var(--surface-subtle); color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .clean-table td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+
+    .table-input { padding: 4px 6px; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--surface); color: var(--text); width: 100%; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: all 0.2s ease; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: var(--shadow-md); }
+
+    .canvas-preview-wrap { text-align: center; margin: 12px 0; max-height: 480px; overflow-y: auto; background: #E5E7EB; padding: 12px; border-radius: var(--radius-sm); }
+    .canvas-preview-wrap canvas { max-width: 100%; height: auto; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+
+    .chart-container-shell { position: relative; height: 230px; width: 100%; margin-top: 8px; }
+    .chart-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; background: var(--surface); pointer-events: none; }
+
+    .graph-toggle-bar { display: flex; gap: 8px; background: var(--surface-subtle); padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 10px; }
+    .graph-toggle-tab { flex: 1; padding: 8px 12px; text-align: center; font-weight: 700; font-size: 0.82rem; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.15s ease; }
+    .graph-toggle-tab.active { background: var(--surface); color: var(--text); border-color: var(--border-dark); box-shadow: var(--shadow-sm); }
+
+    .marks-split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; margin-bottom: 10px; }
+    .marks-toggle-btn { width: 100%; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-sm); border: 1px solid var(--toggle-btn-border); background: var(--toggle-btn-bg); color: var(--toggle-btn-text); font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; }
+    .marks-toggle-btn:hover { border-color: var(--text-muted); background: var(--surface-subtle); }
+    .marks-toggle-btn.expanded { background: var(--surface); border-color: var(--accent); color: var(--text); box-shadow: var(--shadow-sm); }
+
+    .free-test-highlight-card { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(99, 102, 241, 0.18) 100%); border: 1.5px solid var(--green); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; }
+    .btn-test-action { background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF !important; font-weight: 800; border: none; padding: 9px 16px; border-radius: var(--radius-sm); cursor: pointer; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); }
+
+    .feature-card { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: left; }
+
+    .slideshow-stage-shell { position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; background: #000; border: 1px solid var(--border); }
+    .slideshow-viewport { width: 100%; height: 260px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; cursor: pointer; }
+    .slideshow-viewport img { max-width: 100%; max-height: 100%; object-fit: contain; transition: opacity 0.4s ease; }
+    .slideshow-viewport iframe { width: 100%; height: 100%; border: none; }
+    .slideshow-nav-controls { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--surface-subtle); border-top: 1px solid var(--border); }
+    .stage-expanded-4x { height: 480px !important; }
+
+    .exam-fullscreen-arena { position: fixed; inset: 0; z-index: 10000; background: var(--bg); display: flex; flex-direction: column; overflow-y: auto; padding: 16px; }
+    .exam-header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+
+    .absent-tags-container { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; padding: 8px; background: var(--surface-subtle); border-radius: var(--radius-sm); border: 1px dashed var(--border-dark); margin-top: 6px; }
+    .absent-tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 14px; background: #FEE2E2; color: #DC2626; font-size: 0.75rem; font-weight: 700; border: 1px solid #FCA5A5; }
+    .absent-tag-pill span { cursor: pointer; margin-left: 2px; font-weight: 800; }
+
+    .floating-contact-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 99; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: center; gap: 14px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06); }
+    .contact-btn { flex: 1; max-width: 250px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 14px; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.15s ease; }
+    .contact-whatsapp { background: #25D366; color: #FFFFFF; border: 1px solid #20BD5A; }
+    .contact-call { background: var(--text); color: var(--accent-invert); border: 1px solid var(--border-dark); }
+    .contact-btn:active { transform: scale(0.97); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-top-actions">
+      <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">☀️</button>
+      <button class="btn btn-dark btn-sm" onclick="openPasscodeModal('ADMIN')">SKY ⚡</button>
+    </div>
+    
+    <div class="center-branding" onclick="attemptTabSwitch(STATE.isStudentAuthenticated ? 'DASHBOARD' : 'ADMISSIONS')">
+      <img id="navTuitionLogo" class="brand-logo-img" alt="Logo" 
+           src="https://lh3.googleusercontent.com/d/1DeJ9IclVUt3OHp6fSwanaZmkQjpSsXZ1=s600">
+      <div class="brand-subtext">Instructor: Sahil Vadher</div>
+    </div>
+  </header>
+
+  <div class="container" id="mainContainerShell">
+    <div id="noticeBanner" class="notice-marquee hidden">
+      <span class="notice-tag">Notice</span>
+      <span id="noticeContent" style="font-weight: 600;">Loading updates...</span>
+    </div>
+
+    <!-- 4 Main Portal Tabs -->
+    <div class="nav-tabs" id="mainPortalNav">
+      <button class="nav-tab-btn" id="tabBtnAdmissions" onclick="attemptTabSwitch('ADMISSIONS')">Admissions 🌟</button>
+      <button class="nav-tab-btn nav-tab-dashboard-highlight" id="tabBtnDashboard" onclick="attemptTabSwitch('DASHBOARD')">Dashboard 🔒</button>
+      <button class="nav-tab-btn" id="tabBtnOnlineTests" onclick="attemptTabSwitch('TESTS')">Online Tests 📝</button>
+      <button class="nav-tab-btn" id="tabBtnLibrary" onclick="attemptTabSwitch('LIBRARY')">Study Library 🔒</button>
+    </div>
+
+    <!-- VIEW 1: ADMISSIONS -->
+    <div id="viewAdmissions">
+      <div class="card" style="background: linear-gradient(135deg, var(--surface) 0%, var(--surface-subtle) 100%);">
+        <div class="card-title">
+          <span style="font-size: 1.05rem;" id="pubHeroTitle">Welcome to SKY Tuition Academy</span>
+          <span class="badge badge-green" id="pubHeroBadge">Admissions Open</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 12px; line-height: 1.6;" id="pubHeroDesc">
+          Under the expert guidance of <b>Instructor Sahil Vadher</b>, our mission is to build robust, fundamental command over Mathematics and Science for students from <b>Std 1 to Std 10</b>. Concept clarity over rote learning, monitored by verified daily reporting.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+          <div class="feature-card">
+            <b style="font-size: 0.88rem;" id="pubPillar1Title">🎯 Concept-First Mastery</b>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;" id="pubPillar1Desc">
+              Zero rote memorization. Step-by-step deep breakdown of core theorems and scientific principles.
+            </p>
+          </div>
+          <div class="feature-card">
+            <b style="font-size: 0.88rem;" id="pubPillar2Title">📊 Daily Tracking Engine</b>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;" id="pubPillar2Desc">
+              Parents receive verified daily lesson cards and live trajectory analytics on our secure portal.
+            </p>
+          </div>
+          <div class="feature-card">
+            <b style="font-size: 0.88rem;" id="pubPillar3Title">👥 Limited Batch Sizes</b>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;" id="pubPillar3Desc">
+              Individual doubt-solving sessions, regular tests, and structured NCERT exemplar problem coverage.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FREE 30-QUESTION DIAGNOSTIC TEST CARD -->
+      <div class="free-test-highlight-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="badge badge-green" style="background:#10B981; color:#fff;">Free For All Students</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">⏱️ 30-Min Assessment</span>
+            </div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; margin-top: 4px;">🎯 Take Free Foundational Academic Self-Test (30 Questions)</h3>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 2px;">
+              Evaluate your child's basic Mathematics and Science understanding before taking admission.
+            </p>
+          </div>
+          <button class="btn-test-action" onclick="toggleFreeAssessmentModal()">
+            ✨ Click to Start Free Test
+          </button>
+        </div>
+      </div>
+
+      <!-- Batch Timings & Fee Structure -->
+      <div class="card">
+        <div class="card-title">Batch Schedule & Transparent Fee Structure</div>
+        <div style="overflow-x: auto;">
+          <table class="clean-table">
+            <thead>
+              <tr><th>Target Class</th><th>Primary Subjects</th><th>Batch Timing</th><th>Monthly Fee (₹)</th></tr>
+            </thead>
+            <tbody id="pubBatchSchedulesBody">
+              <tr><td><b>Std 9 & Std 10</b></td><td>Maths & Science (Board Exam Focus)</td><td>Evening Batches</td><td><b>₹800 - ₹1000</b></td></tr>
+              <tr><td><b>Std 6 to Std 8</b></td><td>Maths, Science & Foundation</td><td>Flexible Slots</td><td><b>₹700 - ₹800</b></td></tr>
+              <tr><td><b>Std 1 to Std 5</b></td><td>Core Foundation & Numeracy</td><td>Afternoon Slots</td><td><b>₹600 - ₹700</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Showcase Stage -->
+      <div class="card">
+        <div class="card-title">
+          <span>Classroom Photos & Demo Lessons</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);" id="slideshowIndicator">Slide 1</span>
+        </div>
+        <div class="slideshow-stage-shell">
+          <div class="slideshow-viewport" id="activeSlideshowViewport" onclick="toggleSlideshowEnlargeStage()" title="Click to enlarge view 4x">
+            <div style="color:var(--text-muted); font-size:0.85rem;">Loading media showcase...</div>
+          </div>
+          <div class="slideshow-nav-controls">
+            <div>
+              <b style="font-size: 0.88rem;" id="slideMediaTitle">Tuition Activity</b>
+              <div style="font-size: 0.75rem; color: var(--text-muted);" id="slideMediaDesc">Classroom Demonstration</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="advanceSlideshow(-1)">‹ Prev</button>
+              <button class="btn btn-outline btn-sm" onclick="toggleSlideshowEnlargeStage()" id="btnToggle4x">🔍 Toggle 4x View</button>
+              <button class="btn btn-outline btn-sm" onclick="advanceSlideshow(1)">Next ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admission Inquiry Form -->
+      <div class="card" style="border: 2px solid var(--accent);">
+        <div class="card-title">
+          <span>Register Online for Admission / Callback</span>
+          <span class="badge badge-green">Direct Enrollment</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+          Fill out this quick form. Our instructor will reach out to discuss your child's batch timing and seat availability.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="input-group">
+            <label class="input-label">Student Full Name</label>
+            <input type="text" id="inqStudentName" class="input-control" placeholder="Student name">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Target Class</label>
+            <select id="inqTargetClass" class="input-control">
+              <option value="Std 10">Std 10</option>
+              <option value="Std 9">Std 9</option>
+              <option value="Std 8">Std 8</option>
+              <option value="Std 7">Std 7</option>
+              <option value="Std 6">Std 6</option>
+              <option value="Std 5">Std 5</option>
+              <option value="Std 4">Std 4</option>
+              <option value="Std 3">Std 3</option>
+              <option value="Std 2">Std 2</option>
+              <option value="Std 1">Std 1</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="input-group">
+            <label class="input-label">Parent / Guardian Name</label>
+            <input type="text" id="inqParentName" class="input-control" placeholder="Parent name">
+          </div>
+          <div class="input-group">
+            <label class="input-label">WhatsApp Contact Number</label>
+            <input type="tel" id="inqPhone" class="input-control" placeholder="10-digit number">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Notes or Special Requirements (Optional)</label>
+          <input type="text" id="inqNotes" class="input-control" placeholder="e.g. Needs extra focus on Maths algebra, prefer evening slot">
+        </div>
+        <button class="btn btn-dark" style="width: 100%;" onclick="submitOnlineInquiry()">
+          Submit Admission Inquiry 🚀
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 2: DASHBOARD -->
+    <div id="viewDashboard" class="hidden">
+      <div class="card">
+        <div class="input-group" style="margin-bottom: 0;">
+          <label class="input-label">Select Student Profile</label>
+          <select id="studentDropdown" class="input-control" onchange="onStudentSelectChanged()">
+            <option value="">-- Choose Student --</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="studentLoadingSpinner" class="hidden" style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.9rem;">
+        ⚡ Loading student profile data...
+      </div>
+
+      <div id="studentEmptyStateCard" class="card" style="text-align: center; padding: 36px 16px;">
+        <div style="font-size: 2rem; margin-bottom: 8px;">🎓</div>
+        <div style="font-weight: 700; font-size: 1rem; margin-bottom: 4px;">Choose a Student Profile Above</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">
+          Select your registered student from the dropdown list to view attendance, fee status, and marks curves.
+        </p>
+      </div>
+
+      <div id="studentDashboardContent" class="hidden">
+        <div class="card" id="feeStatusCard">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Fee Ledger Status</div>
+              <div id="feeStatusMonth" style="font-size: 1.05rem; font-weight: 800; margin-top: 2px;">September</div>
+            </div>
+            <div id="feeStatusBadge">
+              <span class="badge badge-green">Cleared</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Latest Class Session</span>
+            <span id="latestSessionBadge" class="badge badge-green">Great</span>
+          </div>
+          <div id="latestSessionSubject" style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">Mathematics</div>
+          <div id="latestSessionDate" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">-</div>
+          <div id="latestSessionDetails" style="background: var(--surface-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.88rem;">
+            Lesson remarks.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Progress Trajectory (Last 10 Sessions)</span>
+            <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted);">Cycle Attendance: <b id="trajAttendanceRate" style="color:var(--text);">100%</b></span>
+          </div>
+          <div class="trajectory-grid">
+            <div class="traj-box">
+              <div class="traj-val" id="trajGreat" style="color: var(--green);">0</div>
+              <div class="traj-lbl">Great</div>
+            </div>
+            <div class="traj-box">
+              <div class="traj-val" id="trajImprove" style="color: var(--amber);">0</div>
+              <div class="traj-lbl">Caution</div>
+            </div>
+            <div class="traj-box">
+              <div class="traj-val" id="trajIncomplete" style="color: var(--red);">0</div>
+              <div class="traj-lbl">Incomplete</div>
+            </div>
+            <div class="traj-box">
+              <div class="traj-val" id="trajAbsent" style="color: var(--absent);">0</div>
+              <div class="traj-lbl">Absent</div>
+            </div>
+            <div class="traj-box" style="background: var(--text); color: var(--accent-invert);">
+              <div class="traj-val" id="trajTotal" style="color: inherit;">0</div>
+              <div class="traj-lbl" style="color: var(--text-light);">Sessions</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Academic Performance Graph</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">(Science by default)</span>
+          </div>
+
+          <div class="graph-toggle-bar">
+            <button class="graph-toggle-tab active" id="btnGraphTabScience" onclick="switchActiveGraph('Science')">
+              🔬 Science Performance Curve
+            </button>
+            <button class="graph-toggle-tab" id="btnGraphTabMaths" onclick="switchActiveGraph('Maths')">
+              📐 Maths Performance Curve
+            </button>
+          </div>
+
+          <div class="chart-container-shell" style="height: 240px;">
+            <canvas id="activePerformanceChart"></canvas>
+            <div id="activeChartPlaceholder" class="chart-placeholder">No test logs recorded for this subject.</div>
+          </div>
+
+          <div style="margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px;">
+            <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">
+              Detailed Score Breakdown (Click to View)
+            </div>
+            <div class="marks-split-grid">
+              <button class="marks-toggle-btn" id="btnMarksScience" onclick="toggleSubjectMarksAccordion('Science')">
+                <span>🔬 Science Marks</span>
+                <span id="arrowMarksScience">▼</span>
+              </button>
+              <button class="marks-toggle-btn" id="btnMarksMaths" onclick="toggleSubjectMarksAccordion('Maths')">
+                <span>📐 Maths Marks</span>
+                <span id="arrowMarksMaths">▼</span>
+              </button>
+            </div>
+
+            <div id="contentMarksScience" class="hidden" style="margin-bottom: 12px; background:var(--surface-subtle); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <b style="font-size:0.85rem;">🔬 Science Test Log History</b>
+                <button class="btn btn-outline btn-sm" onclick="toggleSubjectMarksAccordion('Science')" style="padding:2px 8px; font-size:0.7rem;">Minimize</button>
+              </div>
+              <table class="clean-table" style="margin-top: 4px;">
+                <thead>
+                  <tr><th>Date</th><th>Topic/Subj</th><th>Score</th><th>%</th></tr>
+                </thead>
+                <tbody id="scienceMarksTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="contentMarksMaths" class="hidden" style="margin-bottom: 12px; background:var(--surface-subtle); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <b style="font-size:0.85rem;">📐 Maths Test Log History</b>
+                <button class="btn btn-outline btn-sm" onclick="toggleSubjectMarksAccordion('Maths')" style="padding:2px 8px; font-size:0.7rem;">Minimize</button>
+              </div>
+              <table class="clean-table" style="margin-top: 4px;">
+                <thead>
+                  <tr><th>Date</th><th>Topic/Subj</th><th>Score</th><th>%</th></tr>
+                </thead>
+                <tbody id="mathsMarksTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Recent Daily Reports (Past 3 Days)</span>
+          </div>
+          <div id="recentThreeReportsFeed" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+          <button class="btn btn-outline" style="width: 100%; margin-top: 12px; font-weight: 700;" onclick="toggleFullHistorySection()">
+            <span id="fullHistoryBtnText">📂 View All Previous Logged Reports (Expand)</span>
+          </button>
+
+          <div id="fullHistorySection" class="hidden" style="margin-top: 14px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <input type="text" id="historySearchInput" class="input-control" placeholder="Search by topic, keyword, or date..." onkeyup="filterHistoryFeed()">
+              <select id="historyStatusFilter" class="input-control" style="width: 130px;" onchange="filterHistoryFeed()">
+                <option value="ALL">All Status</option>
+                <option value="green">Present</option>
+                <option value="absent">Absent</option>
+                <option value="yellow">Caution</option>
+                <option value="red">Incomplete</option>
+              </select>
+            </div>
+            <div id="allReportsHistoryFeed" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: ONLINE TESTS -->
+    <div id="viewOnlineTests" class="hidden">
+      <div class="card">
+        <div class="card-title">Select Online Test Paper</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <label class="input-label">Class</label>
+            <select id="testClassFilter" class="input-control" onchange="fetchOnlineTestsCatalog()">
+              <option value="ALL">All Classes</option>
+              <option value="Std 10">Std 10</option>
+              <option value="Std 9">Std 9</option>
+              <option value="Std 8">Std 8</option>
+              <option value="Std 7">Std 7</option>
+              <option value="Std 6">Std 6</option>
+              <option value="Std 5">Std 5</option>
+              <option value="Std 4">Std 4</option>
+              <option value="Std 3">Std 3</option>
+              <option value="Std 2">Std 2</option>
+              <option value="Std 1">Std 1</option>
+            </select>
+          </div>
+          <div>
+            <label class="input-label">Subject</label>
+            <select id="testSubjectFilter" class="input-control" onchange="fetchOnlineTestsCatalog()">
+              <option value="ALL">All Subjects</option>
+              <option value="Science">Science</option>
+              <option value="Maths">Maths</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="testsCatalogFeed" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center;">Loading available test papers...</div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: STUDY LIBRARY -->
+    <div id="viewLibrary" class="hidden">
+      <div class="card">
+        <div class="card-title">Browse Curated Materials</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <label class="input-label">Class</label>
+            <select id="libClassFilter" class="input-control" onchange="onLibraryDropdownChanged()">
+              <option value="">-- Choose Class --</option>
+              <option value="Std 10">Std 10</option>
+              <option value="Std 9">Std 9</option>
+              <option value="Std 8">Std 8</option>
+              <option value="Std 7">Std 7</option>
+              <option value="Std 6">Std 6</option>
+              <option value="Std 5">Std 5</option>
+              <option value="Std 4">Std 4</option>
+              <option value="Std 3">Std 3</option>
+              <option value="Std 2">Std 2</option>
+              <option value="Std 1">Std 1</option>
+            </select>
+          </div>
+          <div>
+            <label class="input-label">Category</label>
+            <select id="libSubjectFilter" class="input-control" onchange="onLibraryDropdownChanged()">
+              <option value="">-- Choose Category --</option>
+              <option value="Science">Science</option>
+              <option value="Maths">Maths</option>
+              <option value="Test Papers">Test Papers</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="libraryListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);">
+          Select a <b>Class</b> and <b>Category</b> above to view study materials.
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: TEACHER ADMIN CONSOLE -->
+    <div id="viewAdminConsole" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-weight:800; font-size:1rem;">Teacher Admin Console</span>
+        <button class="btn btn-outline btn-sm" onclick="returnToMainPortal(STATE.isStudentAuthenticated ? 'DASHBOARD' : 'ADMISSIONS')">← Back to Portal</button>
+      </div>
+
+      <div class="admin-subtabs">
+        <button class="admin-subtab-btn active" onclick="switchAdminTab(1)">Daily Report Builder</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(2)">Fee Engine & Ledger</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(3)">Roster & Inquiries</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(4)">Study Library Uploader</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(5)">Notices & Offline Marks</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(6)">Admissions & Showcase CMS ⚙️</button>
+        <button class="admin-subtab-btn" onclick="switchAdminTab(7)">Online Tests Manager 📝</button>
+      </div>
+
+      <!-- TAB 1: DAILY REPORT GENERATOR -->
+      <div id="adminTab1">
+        <div class="card">
+          <div class="card-title">
+            <span>Daily Report Generator</span>
+            <span class="badge badge-green" id="activeStudentCounter">0 Students</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <div class="input-group" style="margin-bottom: 0;">
+              <label class="input-label">1. Target Class Filter</label>
+              <select id="batchClassFilterSelect" class="input-control" onchange="buildPresentStudentsRoster()">
+                <option value="ALL" selected>🌟 All Classes (Whole Tuition)</option>
+                <option value="Std 10">Std 10</option>
+                <option value="Std 9">Std 9</option>
+                <option value="Std 8">Std 8</option>
+                <option value="Std 7">Std 7</option>
+                <option value="Std 6">Std 6</option>
+                <option value="Std 5">Std 5</option>
+                <option value="Std 4">Std 4</option>
+                <option value="Std 3">Std 3</option>
+                <option value="Std 2">Std 2</option>
+                <option value="Std 1">Std 1</option>
+              </select>
+            </div>
+            <div class="input-group" style="margin-bottom: 0;">
+              <label class="input-label">2. Subject</label>
+              <select id="batchSubjectSelect" class="input-control" onchange="onTemplateSubjectChanged()">
+                <option value="Science">Science</option>
+                <option value="Maths" selected>Maths</option>
+                <option value="CUSTOM">Custom Subject...</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background:var(--surface-subtle); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
+            <div style="font-weight:700; font-size:0.75rem; margin-bottom:6px; text-transform:uppercase; color:var(--text-muted);">
+              Lesson Template Builder
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div class="input-group" style="margin-bottom: 6px;">
+                <label class="input-label">Chapter / Topic</label>
+                <select id="tplChapterSelect" class="input-control" onchange="onTplChapterChanged()"></select>
+              </div>
+              <div class="input-group" style="margin-bottom: 6px;">
+                <label class="input-label">Focus / Work Type</label>
+                <select id="tplFocusSelect" class="input-control" onchange="onTplFocusChanged()"></select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <input type="text" id="tplCustomChapterInput" class="input-control hidden" placeholder="Enter chapter name...">
+              <input type="text" id="tplCustomFocusInput" class="input-control hidden" placeholder="Enter custom focus...">
+            </div>
+            <input type="text" id="tplCustomSubjectInput" class="input-control hidden" style="margin-top: 6px;" placeholder="Enter custom subject name...">
+
+            <button class="btn btn-outline btn-sm" style="margin-top: 6px;" onclick="buildAndApplyTemplateLesson()">
+              Apply Generated Lesson Text ✨
+            </button>
+          </div>
+
+          <div style="background:var(--surface-subtle); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-weight:700; font-size:0.75rem; text-transform:uppercase; color:var(--red);">
+                3. Mark Absent Students (Excluded From Active Typing List)
+              </span>
+              <button class="btn btn-outline btn-sm" onclick="clearAllAbsents()" style="padding:2px 8px; font-size:0.7rem;">Reset Absents</button>
+            </div>
+            
+            <select id="quickAbsentDropdown" class="input-control" onchange="addStudentToAbsentBin(this.value)">
+              <option value="">-- Choose Absent Student to Exclude --</option>
+            </select>
+            
+            <div class="absent-tags-container" id="absentTagsContainer">
+              <span style="font-size:0.75rem; color:var(--text-muted); align-self:center;">No absent students selected yet.</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Common Lesson Work Details</label>
+            <textarea id="batchLessonWork" class="input-control" rows="2" placeholder="Enter lesson notes...">Chapter 4 Quadratic Equations - NCERT Exercise 4.2 & formula revision</textarea>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 0.8rem;">Present Students Work List:</span>
+            <button class="btn btn-outline btn-sm" onclick="applyWorkToAllActiveStudents()">↓ Copy Work to All Below</button>
+          </div>
+
+          <div id="presentStudentsListContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto;"></div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-top: 14px;">
+            <button class="btn btn-outline" onclick="openWholeTuitionReviewOnlyModal()">
+              🔍 Review Report Entries
+            </button>
+            <button class="btn btn-outline" onclick="directPreviewDailyCard()">
+              👁️ Preview Card Image
+            </button>
+            <button class="btn btn-dark" onclick="directRegisterDailyReportsToSheet()">
+              💾 Register to Google Sheet
+            </button>
+          </div>
+        </div>
+
+        <!-- DAILY CARD EXPORT SHELL -->
+        <div class="card hidden" id="dailyCardExportShell">
+          <div class="card-title" style="flex-wrap: wrap; gap: 8px;">
+            <span>Retina WhatsApp Daily Summary Card</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Template:</span>
+              <button class="btn btn-dark btn-sm" id="btnDailyDark" onclick="switchDailyCardTemplateTheme('dark')">🌙 Dark</button>
+              <button class="btn btn-outline btn-sm" id="btnDailyLight" onclick="switchDailyCardTemplateTheme('light')">☀️ Light</button>
+              <button class="btn btn-outline btn-sm" onclick="closeDailyCardPreview()" title="Dismiss Preview">✕ Close</button>
+            </div>
+          </div>
+          <div class="canvas-preview-wrap">
+            <canvas id="dailyExportCanvas"></canvas>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn btn-dark btn-sm" style="flex: 1;" onclick="shareDailyCardOnlyImage()">WhatsApp Share (Image Only)</button>
+            <button class="btn btn-outline btn-sm" onclick="downloadDailyCardPng()">Download PNG</button>
+            <button class="btn btn-outline btn-sm" onclick="copyDailyBroadcastText()">Copy Text Only</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="cursor: pointer;" onclick="togglePastReportsAccordion()">
+            <span>Past Daily Reports History 📂</span>
+            <button class="btn btn-outline btn-sm" id="btnToggleHistory">Show History</button>
+          </div>
+          <div id="pastReportsAccordionBody" class="hidden">
+            <div style="overflow-x: auto; margin-top: 10px;">
+              <table class="clean-table">
+                <thead>
+                  <tr><th>Date</th><th>Student</th><th>Subject</th><th>Details</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="pastReportsAdminTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: FEE ENGINE -->
+      <div id="adminTab2" class="hidden">
+        <div class="card">
+          <div class="card-title">Fee Ledger Overview & Student Sync</div>
+          <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+            <div class="input-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+              <label class="input-label">Enter Month Name (e.g. September or October)</label>
+              <input type="text" id="feeBillingMonthInput" class="input-control" value="September" placeholder="e.g. September">
+            </div>
+            <button class="btn btn-dark" onclick="refreshFeeLedger()">Load Roster & Set Active Month</button>
+            <button class="btn btn-outline" onclick="generateFeeSummaryCard()">Generate Fee Slip 🎨</button>
+          </div>
+          <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-muted);">
+            Active Month on Student Dashboards: <b id="activeDisplayMonthLabel" style="color:var(--text);">September</b>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <div class="card" style="margin-bottom: 0; background: var(--green-bg); border-color: var(--green);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--green); text-transform: uppercase;">Total Collected</div>
+            <div id="feeTileCollected" style="font-size: 1.5rem; font-weight: 800; color: var(--green); margin-top: 2px;">₹0</div>
+          </div>
+          <div class="card" style="margin-bottom: 0; background: var(--red-bg); border-color: var(--red);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--red); text-transform: uppercase;">Total Outstanding</div>
+            <div id="feeTileDue" style="font-size: 1.5rem; font-weight: 800; color: var(--red); margin-top: 2px;">₹0</div>
+          </div>
+        </div>
+
+        <!-- FEE CARD EXPORT SHELL -->
+        <div class="card hidden" id="feeCardExportShell">
+          <div class="card-title" style="flex-wrap: wrap; gap: 8px;">
+            <span>Retina Fee Status Statement Card</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Template:</span>
+              <button class="btn btn-dark btn-sm" id="btnFeeDark" onclick="switchFeeCardTemplateTheme('dark')">🌙 Dark</button>
+              <button class="btn btn-outline btn-sm" id="btnFeeLight" onclick="switchFeeCardTemplateTheme('light')">☀️ Light</button>
+              <button class="btn btn-outline btn-sm" onclick="closeFeeCardPreview()" title="Dismiss Preview">✕ Close</button>
+            </div>
+          </div>
+          <div class="canvas-preview-wrap">
+            <canvas id="feeExportCanvas"></canvas>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn btn-dark btn-sm" style="flex: 1;" onclick="shareFeeCardOnlyImage()">WhatsApp Share (Image Only)</button>
+            <button class="btn btn-outline btn-sm" onclick="downloadFeeCardPng()">Download PNG</button>
+            <button class="btn btn-outline btn-sm" onclick="copyFeeBroadcastText()">Copy Text Only</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Student Fee Roster (Edit Fee Amount & Status, then Save)</span>
+            <button class="btn btn-success btn-sm" onclick="commitPendingFeeChanges()">💾 Register & Save Fee Changes to Sheet</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="clean-table">
+              <thead>
+                <tr><th>Student Name</th><th>Class</th><th>Fee Amount (₹)</th><th>Status</th><th>Toggle Status</th></tr>
+              </thead>
+              <tbody id="feeLedgerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ROSTER DIRECTORY -->
+      <div id="adminTab3" class="hidden">
+        <div class="card">
+          <div class="card-title">
+            <span>Online Inquiries & Prospective Admissions</span>
+            <button class="btn btn-outline btn-sm" onclick="refreshInquiriesList()">Refresh Queue</button>
+          </div>
+          <div id="inquiriesQueueContainer" style="overflow-x: auto;">
+            <table class="clean-table">
+              <thead>
+                <tr><th>Date</th><th>Student Name</th><th>Class</th><th>Parent Name</th><th>Phone</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="inquiriesTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Click Refresh to load online admissions.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Register New Student Manually</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Full Name</label>
+              <input type="text" id="newStdName" class="input-control" placeholder="Student name">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Class</label>
+              <select id="newStdClass" class="input-control">
+                <option value="Std 10">Std 10</option>
+                <option value="Std 9">Std 9</option>
+                <option value="Std 8">Std 8</option>
+                <option value="Std 7">Std 7</option>
+                <option value="Std 6">Std 6</option>
+                <option value="Std 5">Std 5</option>
+                <option value="Std 4">Std 4</option>
+                <option value="Std 3">Std 3</option>
+                <option value="Std 2">Std 2</option>
+                <option value="Std 1">Std 1</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Base Monthly Fee (₹)</label>
+              <input type="number" id="newStdFee" class="input-control" placeholder="700">
+            </div>
+            <div class="input-group">
+              <label class="input-label">WhatsApp Contact</label>
+              <input type="tel" id="newStdPhone" class="input-control" placeholder="10-digit number">
+            </div>
+          </div>
+          <button class="btn btn-dark" style="width: 100%;" onclick="submitNewStudent()">Add Student</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Student Master Directory</span>
+            <button class="btn btn-outline btn-sm" onclick="refreshRosterDirectory()">Refresh</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="clean-table">
+              <thead>
+                <tr><th>Name</th><th>Class</th><th>Monthly Fee (₹)</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="rosterAdminTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: STUDY MATERIAL UPLOADER -->
+      <div id="adminTab4" class="hidden">
+        <div class="card">
+          <div class="card-title">Upload Study Document / Note</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Class</label>
+              <select id="matClass" class="input-control">
+                <option value="Std 10">Std 10</option>
+                <option value="Std 9">Std 9</option>
+                <option value="Std 8">Std 8</option>
+                <option value="Std 7">Std 7</option>
+                <option value="Std 6">Std 6</option>
+                <option value="Std 5">Std 5</option>
+                <option value="Std 4">Std 4</option>
+                <option value="Std 3">Std 3</option>
+                <option value="Std 2">Std 2</option>
+                <option value="Std 1">Std 1</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Category</label>
+              <select id="matSubject" class="input-control">
+                <option value="Science">Science</option>
+                <option value="Maths">Maths</option>
+                <option value="Test Papers">Test Papers</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Material Title</label>
+            <select id="matTitlePreset" class="input-control" onchange="onMaterialPresetChanged()">
+              <option value="">-- Choose Standard Title --</option>
+              <option value="NCERT Solutions & Exercises">NCERT Solutions & Exercises</option>
+              <option value="Chapter Quick Revision Notes">Chapter Quick Revision Notes</option>
+              <option value="Formula Sheet & Summary">Formula Sheet & Summary</option>
+              <option value="Previous Year Questions (PYQ)">Previous Year Questions (PYQ)</option>
+              <option value="Daily Practice Worksheet">Daily Practice Worksheet</option>
+              <option value="CUSTOM">✏️ Type Custom Title Below...</option>
+            </select>
+          </div>
+          <div class="input-group" id="matCustomTitleGroup">
+            <label class="input-label">Custom Title Name / Chapter Name</label>
+            <input type="text" id="matTitle" class="input-control" placeholder="e.g. Chapter 4 Carbon Compounds Notes">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Drive / Resource Link</label>
+            <input type="url" id="matDriveLink" class="input-control" placeholder="https://drive.google.com/file/d/...">
+          </div>
+          <button class="btn btn-dark" style="width: 100%;" onclick="submitStudyMaterial()">Publish Material</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Published Materials Manager</div>
+          <div id="adminMaterialsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+
+      <!-- TAB 5: NOTICES & TEST MARKS -->
+      <div id="adminTab5" class="hidden">
+        <div class="card">
+          <div class="card-title">Broadcast Home Notice</div>
+          <div class="input-group">
+            <textarea id="noticeInputText" class="input-control" rows="2" placeholder="Write urgent notice or reminder..."></textarea>
+          </div>
+          <button class="btn btn-dark" style="width: 100%;" onclick="submitNewNotice()">Post Live Notice</button>
+          <div id="adminNoticesList" style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Record Offline Test Marks</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Student</label>
+              <select id="testStdSelect" class="input-control"></select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Subject</label>
+              <select id="testSubject" class="input-control">
+                <option value="Maths">Maths</option>
+                <option value="Science">Science</option>
+                <option value="English">English</option>
+                <option value="Social Science">Social Science</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Date</label>
+              <input type="date" id="testDate" class="input-control">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Marks Obtained</label>
+              <input type="number" id="testObtained" class="input-control" placeholder="38">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Total Marks</label>
+              <input type="number" id="testTotal" class="input-control" placeholder="40">
+            </div>
+          </div>
+          <button class="btn btn-dark" style="width: 100%;" onclick="submitTestRecord()">Save Test Result</button>
+          <div style="overflow-x: auto; margin-top: 14px;">
+            <table class="clean-table">
+              <thead>
+                <tr><th>Date</th><th>Student</th><th>Subject</th><th>Score</th><th>%</th><th>Action</th></tr>
+              </thead>
+              <tbody id="testMarksAdminTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: ADMISSIONS & SHOWCASE CMS -->
+      <div id="adminTab6" class="hidden">
+        <div class="card">
+          <div class="card-title">Edit Admissions Page Copy & Headlines</div>
+          <div class="input-group">
+            <label class="input-label">Hero Title</label>
+            <input type="text" id="cmsHeroTitle" class="input-control">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Badge Label</label>
+            <input type="text" id="cmsHeroBadge" class="input-control">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Hero Description / Instructor Message</label>
+            <textarea id="cmsHeroDesc" class="input-control" rows="3"></textarea>
+          </div>
+
+          <div style="font-weight: 700; font-size: 0.8rem; margin: 12px 0 6px 0; text-transform: uppercase; color: var(--text-muted);">
+            Feature Pillars (3 Key Points)
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="cmsPillar1Title" class="input-control" placeholder="Pillar 1 Title">
+            <input type="text" id="cmsPillar1Desc" class="input-control" placeholder="Pillar 1 Details">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="cmsPillar2Title" class="input-control" placeholder="Pillar 2 Title">
+            <input type="text" id="cmsPillar2Desc" class="input-control" placeholder="Pillar 2 Details">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <input type="text" id="cmsPillar3Title" class="input-control" placeholder="Pillar 3 Title">
+            <input type="text" id="cmsPillar3Desc" class="input-control" placeholder="Pillar 3 Details">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Slideshow Transition Speed (Milliseconds)</label>
+            <select id="cmsSlideshowInterval" class="input-control">
+              <option value="3000">3 Seconds</option>
+              <option value="5000" selected>5 Seconds</option>
+              <option value="8000">8 Seconds</option>
+              <option value="10000">10 Seconds</option>
+            </select>
+          </div>
+
+          <button class="btn btn-dark" style="width: 100%;" onclick="saveAdmissionsCmsContent()">
+            Save Admissions Copy & Interval to Sheets 💾
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Manage Batch Schedule & Fee Table</span>
+            <button class="btn btn-outline btn-sm" onclick="addNewScheduleRowToAdminTable()">+ Add Class Row</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="clean-table" id="adminScheduleEditorTable">
+              <thead>
+                <tr><th>Target Class</th><th>Primary Subjects</th><th>Batch Timing</th><th>Monthly Fee (₹)</th><th>Action</th></tr>
+              </thead>
+              <tbody id="adminScheduleEditorTbody"></tbody>
+            </table>
+          </div>
+          <button class="btn btn-success" style="width: 100%; margin-top: 12px;" onclick="saveBatchScheduleFromAdminTable()">
+            Save Batch Schedules & Fee Table to Sheets 💾
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Add Classroom Photo or Demo Video (Drive Link)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Media Type</label>
+              <select id="newMediaType" class="input-control">
+                <option value="PHOTO">📸 Classroom Photo / GIF</option>
+                <option value="VIDEO">📹 Demo Video / Lesson</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Media Title</label>
+              <input type="text" id="newMediaTitle" class="input-control" placeholder="e.g. Science Experiment Lab">
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Short Description</label>
+            <input type="text" id="newMediaDesc" class="input-control" placeholder="e.g. Demonstration of chemical reactions">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Google Drive Link</label>
+            <input type="url" id="newMediaDriveLink" class="input-control" placeholder="https://drive.google.com/file/d/.../view?usp=sharing">
+          </div>
+          <button class="btn btn-dark" style="width: 100%;" onclick="submitNewShowcaseMedia()">
+            Publish Showcase Media Directly 🚀
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Published Showcase Media Stream</div>
+          <div id="adminShowcaseMediaList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+
+      <!-- TAB 7: ONLINE TESTS & QUESTIONS MANAGER -->
+      <div id="adminTab7" class="hidden">
+        <div class="card">
+          <div class="card-title">
+            <span>Create New Test Paper</span>
+            <span class="badge badge-green">Live Engine</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Target Class</label>
+              <select id="newTestClass" class="input-control">
+                <option value="Std 10">Std 10</option>
+                <option value="Std 9">Std 9</option>
+                <option value="Std 8">Std 8</option>
+                <option value="Std 7">Std 7</option>
+                <option value="Std 6">Std 6</option>
+                <option value="Std 5">Std 5</option>
+                <option value="Std 4">Std 4</option>
+                <option value="Std 3">Std 3</option>
+                <option value="Std 2">Std 2</option>
+                <option value="Std 1">Std 1</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Subject</label>
+              <select id="newTestSubject" class="input-control">
+                <option value="Science">Science</option>
+                <option value="Maths">Maths</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Test Paper Title</label>
+              <input type="text" id="newTestTitle" class="input-control" placeholder="e.g. Chapter 1 Chemical Reactions Foundation">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Duration (Mins)</label>
+              <input type="number" id="newTestDuration" class="input-control" value="30">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Passcode (Optional)</label>
+              <input type="text" id="newTestPasscode" class="input-control" placeholder="e.g. CHEM10">
+            </div>
+          </div>
+          <button class="btn btn-dark" style="width:100%;" onclick="submitNewTestPaper()">+ Create Test Paper</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Online Tests Catalog & Control</span>
+            <button class="btn btn-outline btn-sm" onclick="refreshAdminTestsList()">Refresh List</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="clean-table">
+              <thead>
+                <tr><th>Test ID</th><th>Title</th><th>Class & Sub</th><th>Duration</th><th>Passcode</th><th>Questions</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="adminTestsTableBody">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading tests...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXAM ARENA -->
+  <div id="examArena" class="exam-fullscreen-arena hidden">
+    <div class="exam-header-bar">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="https://lh3.googleusercontent.com/d/1DeJ9IclVUt3OHp6fSwanaZmkQjpSsXZ1=s600" style="height: 48px; width: auto;" alt="Logo">
+        <div>
+          <b style="font-size: 1rem;" id="examArenaTestTitle">Examination Paper</b>
+          <div style="font-size: 0.78rem; color: var(--text-muted);" id="examArenaStudentInfo">Student Name</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="badge badge-red" id="examLiveTimerDisplay" style="font-family: monospace; font-size: 1rem; padding: 6px 12px;">30:00</span>
+        <button class="btn btn-outline btn-sm" onclick="exitExamArenaPrompt()">✕ Exit</button>
+      </div>
+    </div>
+
+    <div id="examArenaQuestionsContainer" style="max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px;"></div>
+
+    <div style="max-width: 800px; margin: 0 auto; width: 100%; padding-bottom: 60px;">
+      <button class="btn btn-dark" style="width: 100%; font-size: 1rem; padding: 12px;" onclick="submitExamArenaAnswers()">
+        Submit Examination Paper 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULT MODAL -->
+  <div id="examResultModal" class="modal-overlay">
+    <div class="modal-box" style="text-align: center;">
+      <span class="badge badge-green" style="font-size: 0.85rem; margin-bottom: 8px;" id="resModalTier">Score Verified</span>
+      <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 4px;" id="resModalPct">0%</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+        Marks: <b id="resModalScore">0</b> / <span id="resModalTotal">0</span>
+      </p>
+      <button class="btn btn-dark" style="width: 100%;" onclick="closeExamResultModal()">Return to Portal</button>
+    </div>
+  </div>
+
+  <!-- TEST PASSCODE MODAL -->
+  <div id="testAuthModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 6px;">Enter Paper Passcode</h3>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;" id="testAuthDesc">
+        Enter the password provided for this test.
+      </p>
+      <div class="input-group">
+        <label class="input-label">Your Name</label>
+        <input type="text" id="testAuthStudentName" class="input-control" placeholder="Enter student name">
+      </div>
+      <div class="input-group" id="testPasscodeInputGroup">
+        <label class="input-label">Paper Passcode</label>
+        <input type="password" id="testAuthPassword" class="input-control" placeholder="Enter passcode...">
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closeTestAuthModal()">Cancel</button>
+        <button class="btn btn-dark" style="flex: 1;" onclick="confirmTestLaunch()">Start Test 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FREE ASSESSMENT MODAL -->
+  <div id="freeAssessmentModal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <b style="font-size: 1rem;">Free 30-Question Foundational Self-Test</b>
+        <button class="btn btn-outline btn-sm" onclick="toggleFreeAssessmentModal()">✕</button>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Student Full Name</label>
+        <input type="text" id="freeDiagName" class="input-control" placeholder="Student name">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Target Class</label>
+        <select id="freeDiagClass" class="input-control">
+          <option value="Std 10">Std 10</option>
+          <option value="Std 9">Std 9</option>
+          <option value="Std 8">Std 8</option>
+          <option value="Std 7">Std 7</option>
+          <option value="Std 6">Std 6</option>
+          <option value="Std 5">Std 5</option>
+          <option value="Std 4">Std 4</option>
+          <option value="Std 3">Std 3</option>
+          <option value="Std 2">Std 2</option>
+          <option value="Std 1">Std 1</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">WhatsApp Contact Number</label>
+        <input type="tel" id="freeDiagPhone" class="input-control" placeholder="10-digit number">
+      </div>
+      <button class="btn btn-dark" style="width: 100%; margin-top: 8px;" id="btnLaunchDiagnostic" onclick="startFreeDiagnosticArena()">
+        Launch Free 30-Question Paper 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- FLOATING CONTACT BAR -->
+  <div class="floating-contact-bar" id="mainFloatingBar">
+    <a href="https://wa.me/919904480677?text=Hello%20Sir%2C%20I%20have%20an%20inquiry%20regarding%20SKY%20Tuition." 
+       target="_blank" class="contact-btn contact-whatsapp">
+      <span>💬 WhatsApp</span>
+    </a>
+    <a href="tel:+919904480677" class="contact-btn contact-call">
+      <span>📞 Call 9904480677</span>
+    </a>
+  </div>
+
+  <!-- PASSCODE MODAL -->
+  <div id="passcodeModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 6px;" id="passcodeModalTitle">Password Protected Area</h3>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;" id="passcodeModalDesc">
+        Please enter the passcode to access enrolled features.
+      </p>
+      <div class="input-group">
+        <input type="password" id="passcodeInput" class="input-control" placeholder="Enter passcode..." onkeyup="if(event.key==='Enter') executeVerifyAccess()">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closePasscodeModal()">Cancel</button>
+        <button class="btn btn-dark" style="flex: 1;" onclick="executeVerifyAccess()">Verify Passcode</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS MANAGER MODAL -->
+  <div id="questionsEditorModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 820px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 800;" id="qEditorTitle">Edit Test Questions</h3>
+          <div style="font-size: 0.75rem; color: var(--text-muted);" id="qEditorSub">Loading...</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="closeQuestionsEditorModal()">✕ Close</button>
+      </div>
+      
+      <div id="qEditorListContainer" style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 4px;">
+        <div style="color:var(--text-muted); text-align:center; padding:20px;">Loading questions...</div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="addNewBlankQuestionToEditor()">+ Add New Question</button>
+        <button class="btn btn-success" onclick="saveQuestionsFromEditor()">💾 Save All Questions to Sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT REVIEW MODAL -->
+  <div id="reportReviewModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 720px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <h3 style="font-size: 1.1rem; font-weight: 800;">Review Class Daily Reports</h3>
+        <span class="badge badge-green" id="previewTotalBadge">Total: 0</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 12px;">
+        Edit student status or lesson remarks directly below.
+      </p>
+      <div style="overflow-x: auto; max-height: 320px;">
+        <table class="clean-table">
+          <thead>
+            <tr><th>Student</th><th>Status</th><th>Work Details (Editable)</th></tr>
+          </thead>
+          <tbody id="reviewTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+        <button class="btn btn-dark" onclick="closeReportReviewModal()">Done Editing ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE SCRIPTS -->
+  <script>
+    var TUITION_LOGO_DRIVE_ID = "1DeJ9IclVUt3OHp6fSwanaZmkQjpSsXZ1";
+    var INSTRUCTOR_NAME = "Sahil Vadher";
+    var TUITION_LOGO_URL = "https://lh3.googleusercontent.com/d/" + TUITION_LOGO_DRIVE_ID + "=s600";
+
+    var isAuthOnDevice = (localStorage.getItem("sky_student_auth") === "true");
+
+    var STATE = {
+      theme: localStorage.getItem("sky_theme") || "dark",
+      isStudentAuthenticated: isAuthOnDevice,
+      adminToken: sessionStorage.getItem("sky_token") || null,
+      activeStudentRequestToken: 0,
+      students: [],
+      currentFeeLedgerData: [],
+      pendingBatchEntries: [],
+      absentStudentIds: new Set(),
+      activeGraphSubject: "Science",
+      activeChartInstance: null,
+      cachedTests: [],
+      cachedStudentReports: [],
+      isMarksScienceOpen: false,
+      isMarksMathsOpen: false,
+      currentActiveTab: isAuthOnDevice ? "DASHBOARD" : "ADMISSIONS",
+      tabHistoryStack: [],
+      admissionsConfig: {},
+      showcaseMedia: [],
+      onlineTestsCatalog: [],
+      slideshowIndex: 0,
+      slideshowTimer: null,
+      isSlideshowExpanded4x: false,
+      activeExam: null,
+      examTimerInterval: null,
+      examSecondsRemaining: 1800,
+      activeEditingTestId: null,
+      activeEditingQuestions: []
+    };
+
+    var TABS_LIST = ["ADMISSIONS", "DASHBOARD", "TESTS", "LIBRARY"];
+
+    var touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
+
+    window.addEventListener("touchstart", function(e) {
+      if (e.touches && e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchend", function(e) {
+      if (e.changedTouches && e.changedTouches.length === 1) {
+        touchEndX = e.changedTouches[0].clientX;
+        touchEndY = e.changedTouches[0].clientY;
+        handleTouchSwipe();
+      }
+    }, { passive: true });
+
+    function handleTouchSwipe() {
+      var arena = document.getElementById("examArena");
+      if (arena && !arena.classList.contains("hidden")) return;
+      var activeModal = document.querySelector(".modal-overlay.active");
+      if (activeModal) return;
+      var adminView = document.getElementById("viewAdminConsole");
+      if (adminView && !adminView.classList.contains("hidden")) return;
+
+      var diffX = touchEndX - touchStartX;
+      var diffY = touchEndY - touchStartY;
+
+      if (Math.abs(diffX) > 55 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+        if (touchStartX < 35 && diffX > 0) return;
+
+        var curIdx = TABS_LIST.indexOf(STATE.currentActiveTab);
+        if (curIdx === -1) return;
+
+        if (diffX < 0 && curIdx < TABS_LIST.length - 1) {
+          attemptTabSwitch(TABS_LIST[curIdx + 1]);
+        } else if (diffX > 0 && curIdx > 0) {
+          attemptTabSwitch(TABS_LIST[curIdx - 1]);
+        }
+      }
+    }
+
+    window.addEventListener("popstate", function() {
+      handleInAppBackNavigation();
+    });
+
+    function handleInAppBackNavigation() {
+      var arena = document.getElementById("examArena");
+      if (arena && !arena.classList.contains("hidden")) {
+        exitExamArenaPrompt();
+        return;
+      }
+      var activeModal = document.querySelector(".modal-overlay.active");
+      if (activeModal) {
+        activeModal.classList.remove("active");
+        return;
+      }
+      var adminView = document.getElementById("viewAdminConsole");
+      if (adminView && !adminView.classList.contains("hidden")) {
+        returnToMainPortal(STATE.isStudentAuthenticated ? "DASHBOARD" : "ADMISSIONS");
+        return;
+      }
+      if (STATE.tabHistoryStack.length > 0) {
+        var prevTab = STATE.tabHistoryStack.pop();
+        switchMainTab(prevTab, true);
+      } else {
+        switchMainTab("ADMISSIONS", true);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+      applyTheme(STATE.theme);
+      loadBootstrapData();
+      initTemplateControls();
+      
+      try {
+        history.replaceState({ tab: STATE.currentActiveTab }, "");
+      } catch(e){}
+
+      if (STATE.isStudentAuthenticated) {
+        switchMainTab("DASHBOARD", true);
+      } else {
+        switchMainTab("ADMISSIONS", true);
+      }
+
+      var testDateInput = document.getElementById("testDate");
+      if (testDateInput) testDateInput.value = new Date().toISOString().split("T")[0];
+    });
+
+    function getLoadedLogoImage(callback) {
+      if (!TUITION_LOGO_URL) { callback(null); return; }
+      var img = new Image();
+      var called = false;
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        if (!called) { called = true; callback(img); }
+      };
+      img.onerror = function() {
+        if (!called) { called = true; callback(null); }
+      };
+      setTimeout(function() {
+        if (!called) { called = true; callback(null); }
+      }, 1800);
+      img.src = TUITION_LOGO_URL;
+    }
+
+    function applyTheme(theme) {
+      STATE.theme = theme;
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("sky_theme", theme);
+      var btn = document.getElementById("themeBtn");
+      if (btn) btn.textContent = theme === "dark" ? "☀️" : "🌓";
+      
+      if (STATE.cachedTests && STATE.cachedTests.length > 0) {
+        renderCurrentActiveChart();
+      }
+    }
+
+    function toggleTheme() {
+      applyTheme(STATE.theme === "dark" ? "light" : "dark");
+    }
+
+    function loadBootstrapData() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          STATE.students = (data && data.students) ? data.students : [];
+          STATE.admissionsConfig = (data && data.admissionsConfig) ? data.admissionsConfig : {};
+          STATE.showcaseMedia = (data && data.showcaseMedia) ? data.showcaseMedia : [];
+          STATE.onlineTestsCatalog = (data && data.onlineTests) ? data.onlineTests : [];
+
+          populateStudentDropdowns();
+          buildPresentStudentsRoster();
+          populateAbsentSelector();
+          renderAdmissionsCMSContent(STATE.admissionsConfig);
+          initAutoSlideshow(STATE.showcaseMedia, Number(STATE.admissionsConfig.slideshowInterval) || 5000);
+          renderOnlineTestsCatalogFeed(STATE.onlineTestsCatalog);
+
+          if (data && data.admissionsConfig && data.admissionsConfig.activeBillingMonth) {
+            var lbl = document.getElementById("activeDisplayMonthLabel");
+            if (lbl) lbl.textContent = data.admissionsConfig.activeBillingMonth;
+          }
+
+          if (data && data.notices && data.notices.length > 0) {
+            document.getElementById("noticeBanner").classList.remove("hidden");
+            document.getElementById("noticeContent").textContent = data.notices[0].message;
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error("Tuition roster load error:", err);
+        })
+        .getGlobalBootstrapData();
+    }
+
+    function populateStudentDropdowns() {
+      var drop = document.getElementById("studentDropdown");
+      var testDrop = document.getElementById("testStdSelect");
+
+      drop.innerHTML = '<option value="">-- Choose Student --</option>';
+      if (testDrop) testDrop.innerHTML = '';
+
+      STATE.students.forEach(function(s) {
+        var opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.name + " (" + s.class + ")";
+        drop.appendChild(opt);
+
+        if (testDrop) {
+          var testOpt = document.createElement("option");
+          testOpt.value = s.id;
+          testOpt.textContent = s.name + " (" + s.class + ")";
+          testDrop.appendChild(testOpt);
+        }
+      });
+    }
+
+    function returnToMainPortal(tab) {
+      document.getElementById("viewAdminConsole").classList.add("hidden");
+      document.getElementById("mainPortalNav").classList.remove("hidden");
+      switchMainTab(tab || (STATE.isStudentAuthenticated ? 'DASHBOARD' : 'ADMISSIONS'));
+    }
+
+    function attemptTabSwitch(tab) {
+      if (tab === "DASHBOARD" || tab === "LIBRARY") {
+        if (!STATE.isStudentAuthenticated) {
+          STATE.attemptedTargetTab = tab;
+          openPasscodeModal("STUDENT");
+          return;
+        }
+      }
+      switchMainTab(tab);
+    }
+
+    function switchMainTab(tab, isBack) {
+      if (!isBack && STATE.currentActiveTab && STATE.currentActiveTab !== tab) {
+        STATE.tabHistoryStack.push(STATE.currentActiveTab);
+        try { history.pushState({ tab: tab }, ""); } catch(e){}
+      }
+      STATE.currentActiveTab = tab;
+
+      document.getElementById("mainPortalNav").classList.remove("hidden");
+      document.querySelectorAll(".nav-tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
+      
+      if (tab === "ADMISSIONS") document.getElementById("tabBtnAdmissions").classList.add("active");
+      if (tab === "DASHBOARD") document.getElementById("tabBtnDashboard").classList.add("active");
+      if (tab === "TESTS") document.getElementById("tabBtnOnlineTests").classList.add("active");
+      if (tab === "LIBRARY") document.getElementById("tabBtnLibrary").classList.add("active");
+
+      document.getElementById("viewAdmissions").classList.toggle("hidden", tab !== "ADMISSIONS");
+      document.getElementById("viewDashboard").classList.toggle("hidden", tab !== "DASHBOARD");
+      document.getElementById("viewOnlineTests").classList.toggle("hidden", tab !== "TESTS");
+      document.getElementById("viewLibrary").classList.toggle("hidden", tab !== "LIBRARY");
+      document.getElementById("viewAdminConsole").classList.add("hidden");
+
+      if (tab === "TESTS") fetchOnlineTestsCatalog();
+      if (tab === "LIBRARY" && STATE.isStudentAuthenticated) fetchLibraryMaterials();
+    }
+
+    function onLibraryDropdownChanged() {
+      if (!STATE.isStudentAuthenticated) {
+        STATE.attemptedTargetTab = "LIBRARY";
+        openPasscodeModal("STUDENT");
+        return;
+      }
+      fetchLibraryMaterials();
+    }
+
+    var pendingPasscodeType = "STUDENT";
+    function openPasscodeModal(type) {
+      pendingPasscodeType = type;
+      var title = document.getElementById("passcodeModalTitle");
+      var desc = document.getElementById("passcodeModalDesc");
+      var input = document.getElementById("passcodeInput");
+      input.value = "";
+
+      if (type === "ADMIN") {
+        if (STATE.adminToken) { showAdminConsole(); return; }
+        title.textContent = "Teacher Admin Access";
+        desc.textContent = "Please enter administrator passcode.";
+      } else {
+        title.textContent = "Student & Parent Access";
+        desc.textContent = "Please enter passcode to access this section.";
+      }
+
+      document.getElementById("passcodeModal").classList.add("active");
+      input.focus();
+    }
+
+    function closePasscodeModal() {
+      document.getElementById("passcodeModal").classList.remove("active");
+    }
+
+    function executeVerifyAccess() {
+      var val = document.getElementById("passcodeInput").value.trim();
+      if (!val) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            closePasscodeModal();
+            if (pendingPasscodeType === "ADMIN") {
+              STATE.adminToken = res.token;
+              sessionStorage.setItem("sky_token", res.token);
+              showAdminConsole();
+            } else {
+              STATE.isStudentAuthenticated = true;
+              localStorage.setItem("sky_student_auth", "true");
+              switchMainTab(STATE.attemptedTargetTab || "DASHBOARD");
+            }
+          } else {
+            alert(res.message || "Incorrect passcode.");
+          }
+        })
+        .verifyAccess(pendingPasscodeType, val);
+    }
+
+    function showAdminConsole() {
+      document.getElementById("viewDashboard").classList.add("hidden");
+      document.getElementById("viewLibrary").classList.add("hidden");
+      document.getElementById("viewAdmissions").classList.add("hidden");
+      document.getElementById("viewOnlineTests").classList.add("hidden");
+      document.getElementById("mainPortalNav").classList.add("hidden");
+      document.getElementById("viewAdminConsole").classList.remove("hidden");
+      switchAdminTab(1);
+    }
+
+    function onStudentSelectChanged() {
+      var studentId = document.getElementById("studentDropdown").value;
+      var content = document.getElementById("studentDashboardContent");
+      var emptyCard = document.getElementById("studentEmptyStateCard");
+      var spinner = document.getElementById("studentLoadingSpinner");
+
+      if (!studentId) {
+        content.classList.add("hidden");
+        spinner.classList.add("hidden");
+        if (emptyCard) emptyCard.classList.remove("hidden");
+        return;
+      }
+
+      if (emptyCard) emptyCard.classList.add("hidden");
+      content.classList.add("hidden");
+      spinner.classList.remove("hidden");
+
+      var thisRequestToken = ++STATE.activeStudentRequestToken;
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (thisRequestToken !== STATE.activeStudentRequestToken) return;
+          spinner.classList.add("hidden");
+
+          if (!data || data.error) {
+            alert(data ? data.error : "Failed to load student data.");
+            if (emptyCard) emptyCard.classList.remove("hidden");
+            return;
+          }
+          renderStudentDashboard(data);
+          content.classList.remove("hidden");
+        })
+        .withFailureHandler(function(err) {
+          spinner.classList.add("hidden");
+          if (emptyCard) emptyCard.classList.remove("hidden");
+          alert("Server error retrieving dashboard: " + err.message);
+        })
+        .getStudentDashboardData(studentId);
+    }
+
+    function renderStudentDashboard(data) {
+      document.getElementById("feeStatusMonth").textContent = (data.feeStatus && data.feeStatus.monthYear) ? data.feeStatus.monthYear : "Current Month";
+      var dueAmt = (data.feeStatus && data.feeStatus.dueAmount) ? data.feeStatus.dueAmount : 0;
+      document.getElementById("feeStatusBadge").innerHTML = (data.feeStatus && data.feeStatus.status === "PAID")
+        ? '<span class="badge badge-green">Cleared (PAID)</span>'
+        : ('<span class="badge badge-red">Pending ₹' + dueAmt + '</span>');
+
+      if (data.latestReport) {
+        document.getElementById("latestSessionSubject").textContent = data.latestReport.subject || "General";
+        document.getElementById("latestSessionDate").textContent = data.latestReport.date || "-";
+        document.getElementById("latestSessionDetails").textContent = data.latestReport.reportDetails || "Regular study session.";
+        
+        var badge = document.getElementById("latestSessionBadge");
+        badge.className = "badge";
+        if (data.latestReport.status === "green") { badge.classList.add("badge-green"); badge.textContent = "Great"; }
+        else if (data.latestReport.status === "yellow") { badge.classList.add("badge-amber"); badge.textContent = "Caution"; }
+        else if (data.latestReport.status === "red") { badge.classList.add("badge-red"); badge.textContent = "Incomplete"; }
+        else { badge.classList.add("badge-absent"); badge.textContent = "Absent"; }
+      } else {
+        document.getElementById("latestSessionSubject").textContent = "No Reports";
+        document.getElementById("latestSessionDate").textContent = "-";
+        document.getElementById("latestSessionDetails").textContent = "No recent sessions logged.";
+      }
+
+      if (data.trajectory) {
+        document.getElementById("trajGreat").textContent = data.trajectory.great;
+        document.getElementById("trajImprove").textContent = data.trajectory.improvement;
+        document.getElementById("trajIncomplete").textContent = data.trajectory.incomplete;
+        document.getElementById("trajAbsent").textContent = data.trajectory.absent;
+        document.getElementById("trajTotal").textContent = data.trajectory.total;
+        document.getElementById("trajAttendanceRate").textContent = (data.trajectory.attendanceRate || 0) + "%";
+      }
+
+      STATE.cachedTests = data.tests || [];
+
+      STATE.isMarksScienceOpen = false;
+      STATE.isMarksMathsOpen = false;
+      updateMarksAccordionUI("Science", false);
+      updateMarksAccordionUI("Maths", false);
+
+      renderSubjectMarksTable("Science");
+      renderSubjectMarksTable("Maths");
+
+      switchActiveGraph("Science");
+
+      var recent3Feed = document.getElementById("recentThreeReportsFeed");
+      recent3Feed.innerHTML = "";
+      var recent3 = (data.recentReports || []).slice(0, 3);
+      if (recent3.length === 0) {
+        recent3Feed.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:10px;">No recent class reports found.</div>';
+      } else {
+        recent3.forEach(function(rep) {
+          recent3Feed.appendChild(createReportCardElement(rep));
+        });
+      }
+
+      STATE.cachedStudentReports = data.allReports || [];
+      renderHistoryFeed(STATE.cachedStudentReports);
+    }
+
+    function createReportCardElement(rep) {
+      var item = document.createElement("div");
+      item.style.padding = "10px 12px";
+      item.style.border = "1px solid var(--border)";
+      item.style.borderRadius = "var(--radius-sm)";
+      item.style.background = "var(--surface)";
+
+      var stBadge = '<span class="badge badge-green">Present</span>';
+      if (rep.status === 'absent') stBadge = '<span class="badge badge-red">Absent</span>';
+      else if (rep.status === 'yellow') stBadge = '<span class="badge badge-amber">Caution</span>';
+      else if (rep.status === 'red') stBadge = '<span class="badge badge-red">Incomplete</span>';
+
+      item.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+        '<div><b style="font-size:0.85rem;">' + rep.subject + '</b><span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">' + rep.date + '</span></div>' +
+        stBadge + '</div>' +
+        '<div style="font-size:0.82rem; color:' + (rep.status === 'absent' ? 'var(--red)' : 'var(--text)') + '; font-weight:' + (rep.status === 'absent' ? '700' : 'normal') + ';">' +
+        rep.reportDetails + '</div>';
+      return item;
+    }
+
+    function switchActiveGraph(subj) {
+      STATE.activeGraphSubject = subj;
+      var btnSci = document.getElementById("btnGraphTabScience");
+      var btnMat = document.getElementById("btnGraphTabMaths");
+
+      if (btnSci && btnMat) {
+        btnSci.classList.toggle("active", subj === "Science");
+        btnMat.classList.toggle("active", subj === "Maths");
+      }
+
+      renderCurrentActiveChart();
+    }
+
+    function renderCurrentActiveChart() {
+      var canvas = document.getElementById("activePerformanceChart");
+      var placeholder = document.getElementById("activeChartPlaceholder");
+      if (!canvas) return;
+
+      var subj = STATE.activeGraphSubject || "Science";
+      var filtered = (STATE.cachedTests || []).filter(function(t) {
+        var s = (t.subject || "").toLowerCase();
+        if (subj === "Maths") return s.indexOf("math") !== -1;
+        if (subj === "Science") return s.indexOf("sci") !== -1;
+        return false;
+      });
+
+      if (STATE.activeChartInstance) {
+        STATE.activeChartInstance.destroy();
+        STATE.activeChartInstance = null;
+      }
+
+      if (filtered.length === 0) {
+        if (placeholder) {
+          placeholder.textContent = "No " + subj + " test logs recorded yet.";
+          placeholder.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (placeholder) placeholder.classList.add("hidden");
+      var ctx = canvas.getContext("2d");
+      var labels = filtered.map(function(t) { return (t.date && t.date.length >= 5) ? t.date.slice(5) : t.date; });
+      var dataPoints = filtered.map(function(t) { return t.percentage; });
+
+      var isDark = (STATE.theme === "dark");
+      var color = (subj === "Science") ? "#10B981" : "#6366F1";
+      var bgColor = (subj === "Science") 
+        ? (isDark ? "rgba(16, 185, 129, 0.22)" : "rgba(16, 185, 129, 0.12)") 
+        : (isDark ? "rgba(99, 102, 241, 0.22)" : "rgba(99, 102, 241, 0.12)");
+
+      STATE.activeChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: subj + " Score %",
+            data: dataPoints,
+            borderColor: color,
+            backgroundColor: bgColor,
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2.5,
+            pointRadius: 4.5,
+            pointHoverRadius: 6.5,
+            pointBackgroundColor: color
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { 
+              min: 0, 
+              max: 100, 
+              grid: { color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" },
+              ticks: { color: isDark ? "#9CA3AF" : "#6B7280" }
+            },
+            x: { 
+              grid: { display: false },
+              ticks: { color: isDark ? "#9CA3AF" : "#6B7280" }
+            }
+          }
+        }
+      });
+    }
+
+    function toggleSubjectMarksAccordion(subj) {
+      if (subj === "Science") {
+        STATE.isMarksScienceOpen = !STATE.isMarksScienceOpen;
+        updateMarksAccordionUI("Science", STATE.isMarksScienceOpen);
+      } else if (subj === "Maths") {
+        STATE.isMarksMathsOpen = !STATE.isMarksMathsOpen;
+        updateMarksAccordionUI("Maths", STATE.isMarksMathsOpen);
+      }
+    }
+
+    function updateMarksAccordionUI(subj, isOpen) {
+      var content = document.getElementById(subj === "Science" ? "contentMarksScience" : "contentMarksMaths");
+      var btn = document.getElementById(subj === "Science" ? "btnMarksScience" : "btnMarksMaths");
+      var arrow = document.getElementById(subj === "Science" ? "arrowMarksScience" : "arrowMarksMaths");
+
+      if (content && btn && arrow) {
+        content.classList.toggle("hidden", !isOpen);
+        btn.classList.toggle("expanded", isOpen);
+        arrow.textContent = isOpen ? "▲" : "▼";
+      }
+    }
+
+    function renderSubjectMarksTable(subj) {
+      var filtered = (STATE.cachedTests || []).filter(function(t) {
+        var s = (t.subject || "").toLowerCase();
+        if (subj === "Maths") return s.indexOf("math") !== -1;
+        if (subj === "Science") return s.indexOf("sci") !== -1;
+        return false;
+      });
+
+      var tbId = subj === "Maths" ? "mathsMarksTableBody" : "scienceMarksTableBody";
+      var tb = document.getElementById(tbId);
+      if (!tb) return;
+      tb.innerHTML = "";
+
+      if (filtered.length === 0) {
+        tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:10px;">No ' + subj + ' test scores logged.</td></tr>';
+      } else {
+        filtered.slice().reverse().forEach(function(t) {
+          var tr = document.createElement("tr");
+          var badgeClass = t.percentage >= 75 ? 'badge-green' : (t.percentage >= 50 ? 'badge-amber' : 'badge-red');
+          tr.innerHTML = '<td>' + t.date + '</td>' +
+            '<td style="font-weight:600;">' + t.subject + '</td>' +
+            '<td>' + t.marksObtained + ' / ' + t.totalMarks + '</td>' +
+            '<td><span class="badge ' + badgeClass + '">' + t.percentage + '%</span></td>';
+          tb.appendChild(tr);
+        });
+      }
+    }
+
+    function toggleFullHistorySection() {
+      var sec = document.getElementById("fullHistorySection");
+      var btnText = document.getElementById("fullHistoryBtnText");
+      STATE.isHistoryExpanded = !STATE.isHistoryExpanded;
+
+      if (STATE.isHistoryExpanded) {
+        sec.classList.remove("hidden");
+        btnText.textContent = "▲ Minimize All Previous Reports";
+      } else {
+        sec.classList.add("hidden");
+        btnText.textContent = "📂 View All Previous Logged Reports (Expand)";
+      }
+    }
+
+    function renderHistoryFeed(reports) {
+      var feed = document.getElementById("allReportsHistoryFeed");
+      if (!feed) return;
+      feed.innerHTML = "";
+
+      if (!reports || reports.length === 0) {
+        feed.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center;">No past reports match the filter.</div>';
+        return;
+      }
+
+      reports.forEach(function(rep) {
+        feed.appendChild(createReportCardElement(rep));
+      });
+    }
+
+    function filterHistoryFeed() {
+      var query = (document.getElementById("historySearchInput").value || "").toLowerCase().trim();
+      var status = document.getElementById("historyStatusFilter").value;
+
+      var filtered = (STATE.cachedStudentReports || []).filter(function(rep) {
+        var matchText = !query || (rep.subject && rep.subject.toLowerCase().indexOf(query) !== -1) || (rep.reportDetails && rep.reportDetails.toLowerCase().indexOf(query) !== -1) || (rep.date && rep.date.indexOf(query) !== -1);
+        var matchStatus = (status === "ALL") || (rep.status === status);
+        return matchText && matchStatus;
+      });
+
+      renderHistoryFeed(filtered);
+    }
+  </script>
+
+  <!-- ADMIN SCRIPTS -->
+  <script>
+    STATE.dailyCardTheme = "dark";
+    STATE.feeCardTheme = "dark";
+
+    function initTemplateControls() {
+      var chDrop = document.getElementById("tplChapterSelect");
+      chDrop.innerHTML = '<option value="">-- Select Chapter --</option>';
+      for (var i = 1; i <= 16; i++) {
+        var opt = document.createElement("option");
+        opt.value = "Chapter " + i;
+        opt.textContent = "Chapter " + i;
+        chDrop.appendChild(opt);
+      }
+      var custCh = document.createElement("option");
+      custCh.value = "CUSTOM";
+      custCh.textContent = "✏️ Custom Chapter...";
+      chDrop.appendChild(custCh);
+
+      onTemplateSubjectChanged();
+    }
+
+    function onTemplateSubjectChanged() {
+      var subj = document.getElementById("batchSubjectSelect").value;
+      var focusDrop = document.getElementById("tplFocusSelect");
+      focusDrop.innerHTML = '<option value="">-- Select Lesson Focus --</option>';
+
+      var isCustom = (subj === "CUSTOM");
+      document.getElementById("tplCustomSubjectInput").classList.toggle("hidden", !isCustom);
+
+      if (subj === "Science") {
+        ['Concept Explanation', 'Chapter Revision', 'NCERT Exercise Questions', 'Formulae & Numerical Practice', 'Blackboard Quiz & Doubts'].forEach(function(f) {
+          var o = document.createElement("option"); o.value = f; o.textContent = f; focusDrop.appendChild(o);
+        });
+      } else if (subj === "Maths") {
+        ['Worksheet Solving', 'Brain Teaser Test Challenge', 'NCERT Question Practice', 'Theorems & Formulas Revision', 'Exemplar Practice'].forEach(function(f) {
+          var o = document.createElement("option"); o.value = f; o.textContent = f; focusDrop.appendChild(o);
+        });
+      } else {
+        ['Topic Revision', 'Question Practice & Exercises', 'Reading & Assessment'].forEach(function(f) {
+          var o = document.createElement("option"); o.value = f; o.textContent = f; focusDrop.appendChild(o);
+        });
+      }
+
+      var custFoc = document.createElement("option");
+      custFoc.value = "CUSTOM";
+      custFoc.textContent = "✏️ Custom Focus...";
+      focusDrop.appendChild(custFoc);
+    }
+
+    function onTplChapterChanged() {
+      var val = document.getElementById("tplChapterSelect").value;
+      document.getElementById("tplCustomChapterInput").classList.toggle("hidden", val !== "CUSTOM");
+    }
+
+    function onTplFocusChanged() {
+      var val = document.getElementById("tplFocusSelect").value;
+      document.getElementById("tplCustomFocusInput").classList.toggle("hidden", val !== "CUSTOM");
+    }
+
+    function buildAndApplyTemplateLesson() {
+      var rawSubj = document.getElementById("batchSubjectSelect").value;
+      var subj = rawSubj === "CUSTOM" ? (document.getElementById("tplCustomSubjectInput").value.trim() || "Subject") : rawSubj;
+
+      var ch = document.getElementById("tplChapterSelect").value;
+      if (ch === "CUSTOM") ch = document.getElementById("tplCustomChapterInput").value.trim();
+
+      var foc = document.getElementById("tplFocusSelect").value;
+      if (foc === "CUSTOM") foc = document.getElementById("tplCustomFocusInput").value.trim();
+
+      var parts = [];
+      if (ch) parts.push(ch);
+      if (foc) parts.push(foc);
+
+      var text = parts.length > 0 ? (parts.join(" - ") + " completed thoroughly.") : (subj + " class practice completed.");
+      document.getElementById("batchLessonWork").value = text;
+      applyWorkToAllActiveStudents();
+    }
+
+    function populateAbsentSelector() {
+      var drop = document.getElementById("quickAbsentDropdown");
+      if (!drop) return;
+      drop.innerHTML = '<option value="">-- Choose Absent Student to Exclude --</option>';
+
+      STATE.students.forEach(function(s) {
+        if (!STATE.absentStudentIds.has(s.id)) {
+          var opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.name + " (" + s.class + ")";
+          drop.appendChild(opt);
+        }
+      });
+    }
+
+    function addStudentToAbsentBin(studentId) {
+      if (!studentId) return;
+      STATE.absentStudentIds.add(studentId);
+      renderAbsentTags();
+      populateAbsentSelector();
+      buildPresentStudentsRoster();
+    }
+
+    function removeStudentFromAbsentBin(studentId) {
+      STATE.absentStudentIds.delete(studentId);
+      renderAbsentTags();
+      populateAbsentSelector();
+      buildPresentStudentsRoster();
+    }
+
+    function clearAllAbsents() {
+      STATE.absentStudentIds.clear();
+      renderAbsentTags();
+      populateAbsentSelector();
+      buildPresentStudentsRoster();
+    }
+
+    function renderAbsentTags() {
+      var cont = document.getElementById("absentTagsContainer");
+      if (!cont) return;
+      cont.innerHTML = "";
+
+      if (STATE.absentStudentIds.size === 0) {
+        cont.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted); align-self:center;">No absent students selected yet.</span>';
+        return;
+      }
+
+      STATE.absentStudentIds.forEach(function(id) {
+        var s = STATE.students.find(function(stu) { return stu.id === id; });
+        if (s) {
+          var tag = document.createElement("div");
+          tag.className = "absent-tag-pill";
+          tag.innerHTML = '✕ ' + s.name + ' (' + s.class + ') <span onclick="removeStudentFromAbsentBin(\'' + s.id + '\')" title="Mark Present">×</span>';
+          cont.appendChild(tag);
+        }
+      });
+    }
+
+    function buildPresentStudentsRoster() {
+      var cont = document.getElementById("presentStudentsListContainer");
+      if (!cont) return;
+      cont.innerHTML = "";
+
+      var targetClass = document.getElementById("batchClassFilterSelect").value;
+      var filteredStudents = STATE.students.slice();
+
+      if (targetClass !== "ALL") {
+        var targetNorm = targetClass.toLowerCase().replace(/^(std|class)\s*/, '');
+        filteredStudents = filteredStudents.filter(function(s) {
+          var sNorm = (s.rawClass || s.class || "").toLowerCase().replace(/^(std|class)\s*/, '');
+          return sNorm === targetNorm;
+        });
+      }
+
+      var presentStudents = filteredStudents.filter(function(s) { return !STATE.absentStudentIds.has(s.id); });
+      var counter = document.getElementById("activeStudentCounter");
+      if (counter) counter.textContent = presentStudents.length + " Present / " + filteredStudents.length + " Total";
+
+      if (presentStudents.length === 0) {
+        cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:12px;">No active present students in this selection.</div>';
+        return;
+      }
+
+      var defaultWork = (document.getElementById("batchLessonWork") ? document.getElementById("batchLessonWork").value.trim() : "");
+
+      presentStudents.forEach(function(s) {
+        var row = document.createElement("div");
+        row.className = "present-student-row";
+        row.style.display = "grid";
+        row.style.gridTemplateColumns = "1.2fr 115px 2.2fr 34px";
+        row.style.gap = "6px";
+        row.style.alignItems = "center";
+        row.style.padding = "6px 8px";
+        row.style.background = "var(--surface)";
+        row.style.border = "1px solid var(--border)";
+        row.style.borderRadius = "var(--radius-sm)";
+        
+        row.innerHTML = '<div><b style="font-size:0.85rem;">' + s.name + '</b><div style="font-size:0.7rem; color:var(--text-muted);">' + s.class + '</div></div>' +
+          '<select class="input-control p-student-status" style="padding:4px 6px; font-size:0.75rem; font-weight:700; height:32px;" onchange="onStudentStatusSelectChanged(this)">' +
+            '<option value="green" selected>✅ Great</option>' +
+            '<option value="yellow">⚠️ Caution</option>' +
+            '<option value="red">✖ Incomplete</option>' +
+          '</select>' +
+          '<input type="text" class="input-control p-student-work" style="padding:4px 8px; font-size:0.8rem;" value="' + defaultWork + '">' +
+          '<button class="btn btn-outline btn-sm" onclick="addStudentToAbsentBin(\'' + s.id + '\')" title="Move to Absent" style="color:var(--red); padding:4px;">✕</button>';
+        row.setAttribute("data-id", s.id);
+        row.setAttribute("data-name", s.name);
+        row.setAttribute("data-class", s.class);
+        cont.appendChild(row);
+      });
+    }
+
+    function onStudentStatusSelectChanged(selElem) {
+      var val = selElem.value;
+      if (val === "green") {
+        selElem.style.borderColor = "var(--green)";
+        selElem.style.color = "var(--green)";
+      } else if (val === "yellow") {
+        selElem.style.borderColor = "var(--amber)";
+        selElem.style.color = "var(--amber)";
+      } else if (val === "red") {
+        selElem.style.borderColor = "var(--red)";
+        selElem.style.color = "var(--red)";
+      }
+    }
+
+    function applyWorkToAllActiveStudents() {
+      var val = document.getElementById("batchLessonWork").value.trim();
+      document.querySelectorAll(".p-student-work").forEach(function(inp) {
+        inp.value = val;
+      });
+    }
+
+    function gatherBatchReportEntriesFromUI() {
+      var date = new Date().toISOString().split("T")[0];
+      var rawSubj = document.getElementById("batchSubjectSelect").value;
+      var subj = rawSubj === "CUSTOM" ? (document.getElementById("tplCustomSubjectInput").value.trim() || "General") : rawSubj;
+      var targetClass = document.getElementById("batchClassFilterSelect").value;
+
+      var entries = [];
+
+      document.querySelectorAll(".present-student-row").forEach(function(r) {
+        var sid = r.getAttribute("data-id");
+        var sname = r.getAttribute("data-name");
+        var scls = r.getAttribute("data-class");
+        var work = r.querySelector(".p-student-work").value.trim() || document.getElementById("batchLessonWork").value.trim() || "Regular class study.";
+        var statusSel = r.querySelector(".p-student-status");
+        var statusVal = statusSel ? statusSel.value : "green";
+
+        entries.push({
+          date: date,
+          studentId: sid,
+          studentName: sname,
+          class: scls,
+          subject: subj,
+          reportDetails: work,
+          status: statusVal
+        });
+      });
+
+      STATE.absentStudentIds.forEach(function(aid) {
+        var s = STATE.students.find(function(stu) { return stu.id === aid; });
+        if (s) {
+          if (targetClass === "ALL" || s.class === targetClass) {
+            entries.push({
+              date: date,
+              studentId: s.id,
+              studentName: s.name,
+              class: s.class,
+              subject: subj,
+              reportDetails: "ABSENT",
+              status: "absent"
+            });
+          }
+        }
+      });
+
+      entries.sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+      STATE.pendingBatchEntries = entries;
+      return entries;
+    }
+
+    function openWholeTuitionReviewOnlyModal() {
+      gatherBatchReportEntriesFromUI();
+      var reviewTb = document.getElementById("reviewTableBody");
+      reviewTb.innerHTML = "";
+
+      document.getElementById("previewTotalBadge").textContent = "Total: " + STATE.pendingBatchEntries.length + " Students";
+
+      STATE.pendingBatchEntries.forEach(function(entry, idx) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td><b>' + entry.studentName + '</b> <span style="font-size:0.75rem; color:var(--text-muted);">(' + entry.class + ')</span></td>' +
+          '<td><select class="table-input" onchange="onPreviewStatusChange(' + idx + ', this.value)">' +
+          '<option value="green" ' + (entry.status === 'green' ? 'selected' : '') + '>✅ Great</option>' +
+          '<option value="yellow" ' + (entry.status === 'yellow' ? 'selected' : '') + '>⚠️ Caution</option>' +
+          '<option value="red" ' + (entry.status === 'red' ? 'selected' : '') + '>✖ Incomplete</option>' +
+          '<option value="absent" ' + (entry.status === 'absent' ? 'selected' : '') + '>✕ ABSENT</option>' +
+          '</select></td>' +
+          '<td><input type="text" class="table-input" id="prev_work_' + idx + '" value="' + entry.reportDetails + '" ' +
+          'style="' + (entry.status === 'absent' ? 'color:var(--red); font-weight:700;' : '') + '" onchange="STATE.pendingBatchEntries[' + idx + '].reportDetails = this.value"></td>';
+        reviewTb.appendChild(tr);
+      });
+
+      document.getElementById("reportReviewModal").classList.add("active");
+    }
+
+    function onPreviewStatusChange(idx, newStatus) {
+      STATE.pendingBatchEntries[idx].status = newStatus;
+      var inp = document.getElementById("prev_work_" + idx);
+      if (newStatus === "absent") {
+        inp.value = "ABSENT";
+        inp.style.color = "var(--red)";
+        inp.style.fontWeight = "700";
+        STATE.pendingBatchEntries[idx].reportDetails = "ABSENT";
+      } else {
+        if (inp.value === "ABSENT") inp.value = document.getElementById("batchLessonWork").value.trim();
+        inp.style.color = "inherit";
+        inp.style.fontWeight = "normal";
+        STATE.pendingBatchEntries[idx].reportDetails = inp.value;
+      }
+    }
+
+    function closeReportReviewModal() {
+      document.getElementById("reportReviewModal").classList.remove("active");
+    }
+
+    function directPreviewDailyCard() {
+      var activeEntries = gatherBatchReportEntriesFromUI();
+      var todayStr = new Date().toISOString().split("T")[0];
+
+      google.script.run
+        .withSuccessHandler(function(todayLogged) {
+          var mergedMap = {};
+
+          (todayLogged || []).forEach(function(r) {
+            mergedMap[r.studentId] = r;
+          });
+
+          activeEntries.forEach(function(e) {
+            mergedMap[e.studentId] = e;
+          });
+
+          var finalEntries = Object.values(mergedMap);
+
+          if (finalEntries.length === 0) {
+            alert("No student entries logged or selected for today.");
+            return;
+          }
+
+          finalEntries.sort(function(a, b) {
+            return a.studentName.localeCompare(b.studentName);
+          });
+
+          STATE.wholeTuitionDailyEntries = finalEntries;
+          renderDailyWhatsAppCard(finalEntries, STATE.dailyCardTheme);
+
+          var shell = document.getElementById("dailyCardExportShell");
+          if (shell) {
+            shell.classList.remove("hidden");
+            shell.scrollIntoView({ behavior: "smooth" });
+          }
+        })
+        .withFailureHandler(function() {
+          STATE.wholeTuitionDailyEntries = activeEntries;
+          renderDailyWhatsAppCard(activeEntries, STATE.dailyCardTheme);
+          var shell = document.getElementById("dailyCardExportShell");
+          if (shell) shell.classList.remove("hidden");
+        })
+        .getDailyReportsForDateAdmin(todayStr, STATE.adminToken);
+    }
+
+    function switchDailyCardTemplateTheme(theme) {
+      STATE.dailyCardTheme = theme;
+      var btnDark = document.getElementById("btnDailyDark");
+      var btnLight = document.getElementById("btnDailyLight");
+      if (btnDark && btnLight) {
+        btnDark.className = theme === "dark" ? "btn btn-dark btn-sm" : "btn btn-outline btn-sm";
+        btnLight.className = theme === "light" ? "btn btn-dark btn-sm" : "btn btn-outline btn-sm";
+      }
+      renderDailyWhatsAppCard(STATE.wholeTuitionDailyEntries || STATE.pendingBatchEntries, theme);
+    }
+
+    function closeDailyCardPreview() {
+      var shell = document.getElementById("dailyCardExportShell");
+      if (shell) shell.classList.add("hidden");
+    }
+
+    function directRegisterDailyReportsToSheet() {
+      gatherBatchReportEntriesFromUI();
+      if (!STATE.pendingBatchEntries || STATE.pendingBatchEntries.length === 0) {
+        alert("No entries to register.");
+        return;
+      }
+      if (!confirm("Commit " + STATE.pendingBatchEntries.length + " student daily reports to Google Sheets?")) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert("Success! Registered " + res.count + " student reports directly in Google Sheets.");
+          if (STATE.pastReportsLoaded) loadAdminPastReports();
+        })
+        .withFailureHandler(function(err) {
+          alert("Failed to save reports: " + err.message);
+        })
+        .batchSaveDailyReports(STATE.pendingBatchEntries, STATE.adminToken);
+    }
+
+    function renderDailyWhatsAppCard(entries, theme) {
+      var canvas = document.getElementById("dailyExportCanvas");
+      var ctx = canvas.getContext("2d");
+      var dpr = Math.max(window.devicePixelRatio || 1, 2);
+
+      entries = entries || [];
+      var width = 760;
+      var rowHeight = 38;
+      var headerHeight = 226;
+      var footerHeight = 46;
+      var height = headerHeight + (entries.length * rowHeight) + footerHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.scale(dpr, dpr);
+
+      var isDark = (theme === "dark");
+
+      getLoadedLogoImage(function(logoImg) {
+        ctx.fillStyle = isDark ? "#0B0E14" : "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.strokeStyle = isDark ? "#2D3748" : "#D1D5DB";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(10, 10, width - 20, height - 20);
+
+        if (logoImg) {
+          var logoHeight = 120;
+          var logoWidth = (logoImg.width / logoImg.height) * logoHeight;
+          var logoX = (width - logoWidth) / 2;
+          ctx.drawImage(logoImg, logoX, 20, logoWidth, logoHeight);
+        }
+
+        ctx.fillStyle = isDark ? "#FFFFFF" : "#111827";
+        ctx.font = "bold 20px -apple-system, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(INSTRUCTOR_NAME, 26, 174);
+
+        ctx.fillStyle = isDark ? "#A0AEC0" : "#4B5563";
+        ctx.font = "600 13px -apple-system, sans-serif";
+        ctx.fillText("Tuition Daily Study & Attendance Report • Whole Academy", 26, 196);
+
+        ctx.textAlign = "right";
+        ctx.fillStyle = isDark ? "#E2E8F0" : "#111827";
+        ctx.font = "bold 14px -apple-system, sans-serif";
+        ctx.fillText("Date: " + new Date().toISOString().split("T")[0], width - 26, 174);
+
+        var presentCount = entries.filter(function(e) { return e.status !== "absent"; }).length;
+        ctx.fillStyle = isDark ? "#10B981" : "#059669";
+        ctx.font = "bold 14px -apple-system, sans-serif";
+        ctx.fillText("Present: " + presentCount + " / " + entries.length + " Students", width - 26, 196);
+        ctx.textAlign = "left";
+
+        ctx.strokeStyle = isDark ? "#2D3748" : "#E5E7EB";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(22, 210);
+        ctx.lineTo(width - 22, 210);
+        ctx.stroke();
+
+        var col1Width = 240;
+        var startY = headerHeight;
+
+        entries.forEach(function(e, idx) {
+          var y = startY + (idx * rowHeight);
+
+          if (isDark) {
+            ctx.fillStyle = (idx % 2 === 0) ? "#141923" : "#1A202C";
+          } else {
+            ctx.fillStyle = (idx % 2 === 0) ? "#F9FAFB" : "#F3F4F6";
+          }
+          ctx.fillRect(22, y, col1Width, rowHeight);
+
+          var st = (e.status || "green").toLowerCase();
+          var isAbsent = (st === "absent");
+          var isCaution = (st === "yellow");
+          var isIncomplete = (st === "red");
+
+          if (isDark) {
+            if (isAbsent) ctx.fillStyle = "#450A0A";
+            else if (isIncomplete) ctx.fillStyle = "#3F0C0C";
+            else if (isCaution) ctx.fillStyle = "#451A03";
+            else ctx.fillStyle = (idx % 2 === 0) ? "#062E24" : "#063D2F";
+          } else {
+            if (isAbsent) ctx.fillStyle = "#FEF2F2";
+            else if (isIncomplete) ctx.fillStyle = "#FEE2E2";
+            else if (isCaution) ctx.fillStyle = "#FFFBEB";
+            else ctx.fillStyle = "#ECFDF5";
+          }
+          ctx.fillRect(22 + col1Width, y, width - 44 - col1Width, rowHeight);
+
+          ctx.strokeStyle = isDark ? "#2D3748" : "#E5E7EB";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(22, y, col1Width, rowHeight);
+          ctx.strokeRect(22 + col1Width, y, width - 44 - col1Width, rowHeight);
+
+          ctx.fillStyle = isDark ? "#FFFFFF" : "#111827";
+          ctx.font = "bold 14px -apple-system, sans-serif";
+          ctx.fillText(e.studentName, 34, y + 24);
+
+          if (isAbsent) {
+            ctx.fillStyle = isDark ? "#F87171" : "#DC2626";
+            ctx.font = "bold 14px -apple-system, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("✕ ABSENT", 22 + col1Width + ((width - 44 - col1Width) / 2), y + 24);
+            ctx.textAlign = "left";
+          } else if (isIncomplete) {
+            ctx.fillStyle = isDark ? "#F87171" : "#DC2626";
+            ctx.font = "600 13px -apple-system, sans-serif";
+            var rWork = "✖ " + (e.reportDetails || "Work Not Completed Properly");
+            if (rWork.length > 56) rWork = rWork.slice(0, 54) + "...";
+            ctx.fillText(rWork, 22 + col1Width + 14, y + 24);
+          } else if (isCaution) {
+            ctx.fillStyle = isDark ? "#FBBF24" : "#D97706";
+            ctx.font = "600 13px -apple-system, sans-serif";
+            var cWork = "⚠️ " + (e.reportDetails || "Needs Improvement / Talking");
+            if (cWork.length > 56) cWork = cWork.slice(0, 54) + "...";
+            ctx.fillText(cWork, 22 + col1Width + 14, y + 24);
+          } else {
+            ctx.fillStyle = isDark ? "#34D399" : "#065F46";
+            ctx.font = "600 13px -apple-system, sans-serif";
+            var displayWork = "✓ " + (e.reportDetails || "Regular practice completed.");
+            if (displayWork.length > 56) displayWork = displayWork.slice(0, 54) + "...";
+            ctx.fillText(displayWork, 22 + col1Width + 14, y + 24);
+          }
+        });
+
+        var footY = startY + (entries.length * rowHeight);
+        ctx.fillStyle = isDark ? "#718096" : "#9CA3AF";
+        ctx.font = "11px -apple-system, sans-serif";
+        ctx.fillText("SKY EduTrack Official Report • Verified by " + INSTRUCTOR_NAME, 26, footY + 28);
+
+        document.getElementById("dailyCardExportShell").classList.remove("hidden");
+      });
+    }
+
+    function shareDailyCardOnlyImage() {
+      var canvas = document.getElementById("dailyExportCanvas");
+      canvas.toBlob(function(blob) {
+        var file = new File([blob], "Tuition_Daily_Report.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: "Tuition Daily Report" });
+        } else {
+          downloadDailyCardPng();
+        }
+      });
+    }
+
+    function downloadDailyCardPng() {
+      var canvas = document.getElementById("dailyExportCanvas");
+      var a = document.createElement("a");
+      a.download = "Tuition_Daily_Report_" + new Date().toISOString().split("T")[0] + ".png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    }
+
+    function copyDailyBroadcastText() {
+      navigator.clipboard.writeText(generateDailyBroadcastText()).then(function() {
+        alert("Broadcast text summary copied to clipboard!");
+      });
+    }
+
+    function generateDailyBroadcastText() {
+      var list = STATE.wholeTuitionDailyEntries || STATE.pendingBatchEntries || [];
+      var text = "📋 *Tuition Daily Report*\n📅 *Date:* " + new Date().toISOString().split("T")[0] + "\n\n";
+      list.forEach(function(e) {
+        var st = (e.status || "green").toLowerCase();
+        if (st === 'absent') {
+          text += "❌ *" + e.studentName + "*: ABSENT\n";
+        } else if (st === 'red') {
+          text += "✖ *" + e.studentName + "* (Incomplete): " + e.reportDetails + "\n";
+        } else if (st === 'yellow') {
+          text += "⚠️ *" + e.studentName + "* (Caution): " + e.reportDetails + "\n";
+        } else {
+          text += "✅ *" + e.studentName + "*: " + e.reportDetails + "\n";
+        }
+      });
+      return text;
+    }
+
+    function togglePastReportsAccordion() {
+      var body = document.getElementById("pastReportsAccordionBody");
+      var btn = document.getElementById("btnToggleHistory");
+      var isClosed = body.classList.contains("hidden");
+
+      if (isClosed) {
+        body.classList.remove("hidden");
+        btn.textContent = "Hide History";
+        if (!STATE.pastReportsLoaded) loadAdminPastReports();
+      } else {
+        body.classList.add("hidden");
+        btn.textContent = "Show History";
+      }
+    }
+
+    function loadAdminPastReports() {
+      var tb = document.getElementById("pastReportsAdminTableBody");
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading past reports...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(function(reports) {
+          STATE.pastReportsLoaded = true;
+          tb.innerHTML = "";
+          if (!reports || reports.length === 0) {
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;">No past reports found.</td></tr>';
+            return;
+          }
+          reports.slice(0, 30).forEach(function(r) {
+            var tr = document.createElement("tr");
+            tr.innerHTML = '<td>' + r.date + '</td>' +
+              '<td style="font-weight:700;">' + r.studentName + '</td>' +
+              '<td><input type="text" class="table-input" id="rep_sub_' + r.reportId + '" value="' + r.subject + '"></td>' +
+              '<td><input type="text" class="table-input" id="rep_det_' + r.reportId + '" value="' + r.reportDetails + '"></td>' +
+              '<td><select class="table-input" id="rep_st_' + r.reportId + '">' +
+              '<option value="green" ' + (r.status === 'green' ? 'selected' : '') + '>✅ Great</option>' +
+              '<option value="yellow" ' + (r.status === 'yellow' ? 'selected' : '') + '>⚠️ Caution</option>' +
+              '<option value="red" ' + (r.status === 'red' ? 'selected' : '') + '>✖ Incomplete</option>' +
+              '<option value="absent" ' + (r.status === 'absent' ? 'selected' : '') + '>✕ Absent</option>' +
+              '</select></td>' +
+              '<td style="white-space:nowrap;">' +
+              '<button class="btn btn-outline btn-sm" onclick="savePastReportEdit(\'' + r.reportId + '\')">Save</button> ' +
+              '<button class="btn btn-danger btn-sm" onclick="deletePastReport(\'' + r.reportId + '\')">Delete</button>' +
+              '</td>';
+            tb.appendChild(tr);
+          });
+        })
+        .getAllDailyReportsAdmin(30);
+    }
+
+    function savePastReportEdit(reportId) {
+      var sub = document.getElementById("rep_sub_" + reportId).value.trim();
+      var det = document.getElementById("rep_det_" + reportId).value.trim();
+      var st = document.getElementById("rep_st_" + reportId).value;
+
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Report updated in Google Sheets!");
+        })
+        .updateDailyReportAdmin(reportId, { subject: sub, reportDetails: det, status: st }, STATE.adminToken);
+    }
+
+    function deletePastReport(reportId) {
+      if (!confirm("Permanently delete this report?")) return;
+      google.script.run
+        .withSuccessHandler(function() { loadAdminPastReports(); })
+        .deleteDailyReportAdmin(reportId, STATE.adminToken);
+    }
+
+    function refreshFeeLedger() {
+      var mInput = document.getElementById("feeBillingMonthInput");
+      var m = mInput ? mInput.value.trim() : "September";
+      if (!m) m = "September";
+
+      var tb = document.getElementById("feeLedgerTableBody");
+      tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Syncing active students...</td></tr>';
+
+      google.script.run.setActiveBillingMonthAdmin(m, STATE.adminToken);
+      var lbl = document.getElementById("activeDisplayMonthLabel");
+      if (lbl) lbl.textContent = m;
+
+      google.script.run
+        .withSuccessHandler(function(rows) {
+          tb.innerHTML = "";
+          STATE.currentFeeLedgerData = rows || [];
+          renderFeeTableAndMetrics();
+        })
+        .getFeeLedgerWithAutoSync(m);
+    }
+
+    function renderFeeTableAndMetrics() {
+      var rows = STATE.currentFeeLedgerData;
+      var tb = document.getElementById("feeLedgerTableBody");
+      tb.innerHTML = "";
+
+      var totalCollected = 0;
+      var totalDue = 0;
+
+      if (!rows || rows.length === 0) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students found.</td></tr>';
+        document.getElementById("feeTileCollected").textContent = "₹0";
+        document.getElementById("feeTileDue").textContent = "₹0";
+        return;
+      }
+
+      rows.forEach(function(r, idx) {
+        var feeAmt = Number(r.allocatedFee) || 0;
+        if (r.status === "PAID") {
+          totalCollected += feeAmt;
+        } else {
+          totalDue += feeAmt;
+        }
+
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td style="font-weight:700;">' + r.studentName + '</td>' +
+          '<td>' + r.class + '</td>' +
+          '<td><input type="number" class="table-input" style="width:105px;" value="' + feeAmt + '" ' +
+          'onchange="stageFeeAmountChange(' + idx + ', this.value)" title="Edit fee amount"></td>' +
+          '<td><span class="badge ' + (r.status === 'PAID' ? 'badge-green' : 'badge-red') + '">' + r.status + '</span></td>' +
+          '<td><button class="btn btn-outline btn-sm" onclick="stageFeeStatusToggle(' + idx + ')">' +
+          'Mark ' + (r.status === 'PAID' ? 'DUE' : 'PAID') + '</button></td>';
+        tb.appendChild(tr);
+      });
+
+      document.getElementById("feeTileCollected").textContent = "₹" + totalCollected;
+      document.getElementById("feeTileDue").textContent = "₹" + totalDue;
+    }
+
+    function stageFeeStatusToggle(idx) {
+      var current = STATE.currentFeeLedgerData[idx].status;
+      STATE.currentFeeLedgerData[idx].status = (current === "PAID") ? "DUE" : "PAID";
+      renderFeeTableAndMetrics();
+    }
+
+    function stageFeeAmountChange(idx, newAmount) {
+      STATE.currentFeeLedgerData[idx].allocatedFee = Number(newAmount) || 0;
+      renderFeeTableAndMetrics();
+    }
+
+    function commitPendingFeeChanges() {
+      if (!STATE.currentFeeLedgerData || STATE.currentFeeLedgerData.length === 0) {
+        alert("No fee data loaded.");
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert("Success! Synchronized " + res.count + " student fee records to Google Sheets.");
+          refreshFeeLedger();
+        })
+        .withFailureHandler(function(err) {
+          alert("Error saving fee records: " + err.message);
+        })
+        .batchUpdateFeeLedger(STATE.currentFeeLedgerData, STATE.adminToken);
+    }
+
+    function switchFeeCardTemplateTheme(theme) {
+      STATE.feeCardTheme = theme;
+      var btnDark = document.getElementById("btnFeeDark");
+      var btnLight = document.getElementById("btnFeeLight");
+      if (btnDark && btnLight) {
+        btnDark.className = theme === "dark" ? "btn btn-dark btn-sm" : "btn btn-outline btn-sm";
+        btnLight.className = theme === "light" ? "btn btn-dark btn-sm" : "btn btn-outline btn-sm";
+      }
+      renderFeeSummaryCard(theme);
+    }
+
+    function generateFeeSummaryCard() {
+      renderFeeSummaryCard(STATE.feeCardTheme);
+    }
+
+    function renderFeeSummaryCard(theme) {
+      var rows = STATE.currentFeeLedgerData;
+      if (!rows || rows.length === 0) { alert("Please load fee roster first."); return; }
+
+      var canvas = document.getElementById("feeExportCanvas");
+      var ctx = canvas.getContext("2d");
+      var dpr = Math.max(window.devicePixelRatio || 1, 2);
+
+      var mInput = document.getElementById("feeBillingMonthInput");
+      var m = mInput ? mInput.value.trim() : "September";
+      var width = 680;
+      var rowHeight = 38;
+      var headerHeight = 226;
+      var footerHeight = 46;
+      var height = headerHeight + (rows.length * rowHeight) + footerHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.scale(dpr, dpr);
+
+      var isDark = (theme === "dark");
+
+      getLoadedLogoImage(function(logoImg) {
+        ctx.fillStyle = isDark ? "#0B0E14" : "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.strokeStyle = isDark ? "#2D3748" : "#D1D5DB";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(10, 10, width - 20, height - 20);
+
+        if (logoImg) {
+          var logoHeight = 120;
+          var logoWidth = (logoImg.width / logoImg.height) * logoHeight;
+          var logoX = (width - logoWidth) / 2;
+          ctx.drawImage(logoImg, logoX, 20, logoWidth, logoHeight);
+        }
+
+        ctx.fillStyle = isDark ? "#FFFFFF" : "#111827";
+        ctx.font = "bold 20px -apple-system, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(INSTRUCTOR_NAME, 26, 174);
+
+        ctx.fillStyle = isDark ? "#A0AEC0" : "#4B5563";
+        ctx.font = "600 13px -apple-system, sans-serif";
+        ctx.fillText("Monthly Tuition Fee Status Statement", 26, 196);
+
+        ctx.textAlign = "right";
+        ctx.fillStyle = isDark ? "#E2E8F0" : "#111827";
+        ctx.font = "bold 14px -apple-system, sans-serif";
+        ctx.fillText("Month: " + m.toUpperCase(), width - 26, 174);
+        ctx.textAlign = "left";
+
+        ctx.strokeStyle = isDark ? "#2D3748" : "#E5E7EB";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(22, 210);
+        ctx.lineTo(width - 22, 210);
+        ctx.stroke();
+
+        var startY = headerHeight;
+        rows.forEach(function(r, idx) {
+          var y = startY + (idx * rowHeight);
+
+          if (isDark) {
+            ctx.fillStyle = (idx % 2 === 0) ? "#141923" : "#1A202C";
+          } else {
+            ctx.fillStyle = (idx % 2 === 0) ? "#FFFFFF" : "#F9FAFB";
+          }
+          ctx.fillRect(22, y, width - 44, rowHeight);
+
+          ctx.strokeStyle = isDark ? "#2D3748" : "#E5E7EB";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(22, y, width - 44, rowHeight);
+
+          ctx.fillStyle = isDark ? "#FFFFFF" : "#111827";
+          ctx.font = "bold 14px -apple-system, sans-serif";
+          ctx.fillText(r.studentName, 36, y + 24);
+
+          ctx.fillStyle = isDark ? "#A0AEC0" : "#6B7280";
+          ctx.font = "12px -apple-system, sans-serif";
+          ctx.fillText("(" + r.class + ")", 250, y + 24);
+
+          ctx.textAlign = "right";
+          if (r.status === "PAID") {
+            ctx.fillStyle = isDark ? "#34D399" : "#10B981";
+            ctx.font = "bold 13px -apple-system, sans-serif";
+            ctx.fillText("PAID ✓", width - 38, y + 24);
+          } else {
+            var dueVal = Number(r.dueAmount || r.allocatedFee) || 0;
+            ctx.fillStyle = isDark ? "#F87171" : "#EF4444";
+            ctx.font = "bold 13px -apple-system, sans-serif";
+            ctx.fillText("DUE: ₹" + dueVal, width - 38, y + 24);
+          }
+          ctx.textAlign = "left";
+        });
+
+        var footY = startY + (rows.length * rowHeight);
+        ctx.fillStyle = isDark ? "#718096" : "#9CA3AF";
+        ctx.font = "11px -apple-system, sans-serif";
+        ctx.fillText("SKY EduTrack Official Record • " + new Date().toLocaleDateString(), 26, footY + 28);
+
+        document.getElementById("feeCardExportShell").classList.remove("hidden");
+      });
+    }
+
+    function closeFeeCardPreview() {
+      var shell = document.getElementById("feeCardExportShell");
+      if (shell) shell.classList.add("hidden");
+    }
+
+    function shareFeeCardOnlyImage() {
+      var canvas = document.getElementById("feeExportCanvas");
+      canvas.toBlob(function(blob) {
+        var file = new File([blob], "Fee_Summary_Report.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: "Tuition Fee Summary" });
+        } else {
+          downloadFeeCardPng();
+        }
+      });
+    }
+
+    function downloadFeeCardPng() {
+      var canvas = document.getElementById("feeExportCanvas");
+      var mInput = document.getElementById("feeBillingMonthInput");
+      var m = mInput ? mInput.value.trim() : "Fee";
+      var a = document.createElement("a");
+      a.download = "Fee_Summary_" + m.replace(/\s+/g, '_') + ".png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    }
+
+    function copyFeeBroadcastText() {
+      navigator.clipboard.writeText(generateFeeBroadcastText()).then(function() {
+        alert("Broadcast summary copied!");
+      });
+    }
+
+    function generateFeeBroadcastText() {
+      var mInput = document.getElementById("feeBillingMonthInput");
+      var m = mInput ? mInput.value.trim() : "Current Month";
+      var rows = STATE.currentFeeLedgerData;
+      var text = "💳 *Tuition Monthly Fee Summary*\n📆 *Month:* " + m + "\n\n";
+      rows.forEach(function(r) {
+        var st = r.status === "PAID" ? "✅ PAID" : ("⏳ DUE: ₹" + (r.dueAmount || r.allocatedFee));
+        text += "• *" + r.studentName + "* (" + r.class + "): " + st + "\n";
+      });
+      text += "\n_Please clear any pending dues at your earliest convenience._\nThank you!";
+      return text;
+    }
+
+    function refreshInquiriesList() {
+      var tb = document.getElementById("inquiriesTableBody");
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading admission inquiries...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          tb.innerHTML = "";
+          if (!list || list.length === 0) {
+            tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No inquiries logged.</td></tr>';
+            return;
+          }
+          list.forEach(function(inq) {
+            var tr = document.createElement("tr");
+            var isEnrolled = (inq.status === "ENROLLED");
+            tr.innerHTML = '<td>' + inq.timestamp + '</td>' +
+              '<td><b>' + inq.studentName + '</b></td>' +
+              '<td>' + inq.class + '</td>' +
+              '<td>' + inq.parentName + '</td>' +
+              '<td><a href="https://wa.me/91' + inq.phone + '" target="_blank">' + inq.phone + '</a></td>' +
+              '<td><span class="badge ' + (isEnrolled ? 'badge-green' : 'badge-amber') + '">' + inq.status + '</span></td>' +
+              '<td>' +
+              (isEnrolled 
+                ? '<span style="font-size:0.75rem; color:var(--green); font-weight:700;">Enrolled ✓</span>'
+                : '<button class="btn btn-success btn-sm" onclick="enrollInquiryDirectly(\'' + inq.inquiryId + '\')">➕ 1-Click Enroll</button>') +
+              '</td>';
+            tb.appendChild(tr);
+          });
+        })
+        .getPendingInquiriesAdmin();
+    }
+
+    function enrollInquiryDirectly(inquiryId) {
+      var fee = prompt("Enter monthly fee amount for this student (₹):", "700");
+      if (fee === null) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            alert("Enrolled " + res.studentName + " to active student roster with ID " + res.studentId + "!");
+            refreshInquiriesList();
+            refreshRosterDirectory();
+            loadBootstrapData();
+          } else {
+            alert("Enrollment failed: " + res.message);
+          }
+        })
+        .enrollInquiryToRoster(inquiryId, fee, STATE.adminToken);
+    }
+
+    function refreshRosterDirectory() {
+      var tb = document.getElementById("rosterAdminTableBody");
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading roster...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          tb.innerHTML = "";
+          list.forEach(function(s) {
+            var tr = document.createElement("tr");
+            var classOptions = ['Std 10','Std 9','Std 8','Std 7','Std 6','Std 5','Std 4','Std 3','Std 2','Std 1'].map(function(c) {
+              return '<option value="' + c + '" ' + (s.class === c ? 'selected' : '') + '>' + c + '</option>';
+            }).join('');
+
+            tr.innerHTML = '<td><input type="text" class="table-input" id="std_name_' + s.studentId + '" value="' + s.name + '"></td>' +
+              '<td><select class="table-input" id="std_cls_' + s.studentId + '">' + classOptions + '</select></td>' +
+              '<td><input type="number" class="table-input" id="std_fee_' + s.studentId + '" value="' + s.monthlyFee + '"></td>' +
+              '<td><input type="tel" class="table-input" id="std_ph_' + s.studentId + '" value="' + s.phone + '"></td>' +
+              '<td><select class="table-input" id="std_st_' + s.studentId + '">' +
+              '<option value="ACTIVE" ' + (s.status === 'ACTIVE' ? 'selected' : '') + '>ACTIVE</option>' +
+              '<option value="INACTIVE" ' + (s.status === 'INACTIVE' ? 'selected' : '') + '>INACTIVE</option>' +
+              '</select></td>' +
+              '<td style="white-space:nowrap;">' +
+              '<button class="btn btn-outline btn-sm" onclick="saveStudentInlineEdit(\'' + s.studentId + '\')">Save</button> ' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteStudentRecord(\'' + s.studentId + '\')">Delete</button>' +
+              '</td>';
+            tb.appendChild(tr);
+          });
+        })
+        .getAllStudentsAdmin();
+    }
+
+    function saveStudentInlineEdit(studentId) {
+      var fields = {
+        name: document.getElementById("std_name_" + studentId).value.trim(),
+        class: document.getElementById("std_cls_" + studentId).value,
+        monthlyFee: Number(document.getElementById("std_fee_" + studentId).value) || 0,
+        phone: document.getElementById("std_ph_" + studentId).value.trim(),
+        status: document.getElementById("std_st_" + studentId).value
+      };
+
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Student updated in Google Sheets!");
+          loadBootstrapData();
+        })
+        .updateStudent(studentId, fields, STATE.adminToken);
+    }
+
+    function deleteStudentRecord(studentId) {
+      if (!confirm("Permanently delete this student?")) return;
+      google.script.run
+        .withSuccessHandler(function() { refreshRosterDirectory(); loadBootstrapData(); })
+        .deleteStudentAdmin(studentId, STATE.adminToken);
+    }
+
+    function submitNewStudent() {
+      var s = {
+        name: document.getElementById("newStdName").value,
+        class: document.getElementById("newStdClass").value,
+        monthlyFee: document.getElementById("newStdFee").value,
+        phone: document.getElementById("newStdPhone").value
+      };
+      if (!s.name || !s.phone) { alert("Fill all fields"); return; }
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Student registered!");
+          document.getElementById("newStdName").value = "";
+          document.getElementById("newStdPhone").value = "";
+          refreshRosterDirectory();
+          loadBootstrapData();
+        })
+        .addStudent(s, STATE.adminToken);
+    }
+
+    function onMaterialPresetChanged() {
+      var val = document.getElementById("matTitlePreset").value;
+      if (val && val !== "CUSTOM") {
+        document.getElementById("matTitle").value = val;
+      } else if (val === "CUSTOM") {
+        document.getElementById("matTitle").value = "";
+        document.getElementById("matTitle").focus();
+      }
+    }
+
+    function submitStudyMaterial() {
+      var preset = document.getElementById("matTitlePreset").value;
+      var title = document.getElementById("matTitle").value.trim();
+      var finalTitle = title || preset;
+
+      var m = {
+        class: document.getElementById("matClass").value,
+        subject: document.getElementById("matSubject").value,
+        title: finalTitle,
+        driveLink: document.getElementById("matDriveLink").value
+      };
+      if (!m.title || !m.driveLink) { alert("Provide material title and link."); return; }
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Material published to study library!");
+          document.getElementById("matTitle").value = "";
+          document.getElementById("matDriveLink").value = "";
+          refreshAdminMaterials();
+        })
+        .addStudyMaterial(m, STATE.adminToken);
+    }
+
+    function refreshAdminMaterials() {
+      var cont = document.getElementById("adminMaterialsList");
+      cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Loading uploaded notes...</div>';
+      google.script.run
+        .withSuccessHandler(function(list) {
+          cont.innerHTML = "";
+          if (!list || list.length === 0) {
+            cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">No study materials published yet.</div>';
+            return;
+          }
+          list.forEach(function(m) {
+            var row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.padding = "8px 12px";
+            row.style.border = "1px solid var(--border)";
+            row.style.borderRadius = "var(--radius-sm)";
+            row.style.background = "var(--surface)";
+            row.innerHTML = '<div><b style="font-size:0.85rem;">' + m.title + '</b><div style="font-size:0.75rem; color:var(--text-muted);">' + m.class + ' • ' + m.subject + '</div></div>' +
+              '<button class="btn btn-danger btn-sm" onclick="removeStudyMaterial(\'' + m.materialId + '\')">Delete</button>';
+            cont.appendChild(row);
+          });
+        })
+        .getStudyMaterials("ALL", "ALL");
+    }
+
+    function removeStudyMaterial(id) {
+      if (!confirm("Permanently delete this material from sheet?")) return;
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminMaterials(); })
+        .deleteStudyMaterial(id, STATE.adminToken);
+    }
+
+    function fetchLibraryMaterials() {
+      var c = document.getElementById("libClassFilter").value;
+      var s = document.getElementById("libSubjectFilter").value;
+      var cont = document.getElementById("libraryListContainer");
+
+      if (!c || !s) {
+        cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);">Select a <b>Class</b> and <b>Category</b> above to view study materials.</div>';
+        return;
+      }
+
+      cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Searching materials...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          cont.innerHTML = "";
+          if (!list || list.length === 0) {
+            cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);">No study notes found matching ' + c + ' - ' + s + '.</div>';
+            return;
+          }
+          list.forEach(function(m) {
+            var el = document.createElement("div");
+            el.className = "card";
+            el.style.marginBottom = "8px";
+            el.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
+              '<div><div style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">' + m.class + ' • ' + m.subject + '</div>' +
+              '<div style="font-weight:700; font-size:0.95rem; margin:2px 0 6px 0;">' + m.title + '</div></div>' +
+              '<a href="' + m.driveLink + '" target="_blank" class="btn btn-outline btn-sm">Preview ↗</a></div>';
+            cont.appendChild(el);
+          });
+        })
+        .getStudyMaterials(c, s);
+    }
+
+    function submitNewNotice() {
+      var text = document.getElementById("noticeInputText").value.trim();
+      if (!text) return;
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Notice broadcast live to home banner!");
+          document.getElementById("noticeInputText").value = "";
+          refreshAdminNotices();
+          loadBootstrapData();
+        })
+        .addNotice(text, STATE.adminToken);
+    }
+
+    function refreshAdminNotices() {
+      var cont = document.getElementById("adminNoticesList");
+      cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Loading notices...</div>';
+      google.script.run
+        .withSuccessHandler(function(list) {
+          cont.innerHTML = "";
+          if (!list || list.length === 0) {
+            cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">No notices found.</div>';
+            return;
+          }
+          list.forEach(function(n) {
+            var row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.padding = "8px 12px";
+            row.style.border = "1px solid var(--border)";
+            row.style.borderRadius = "var(--radius-sm)";
+            row.style.background = "var(--surface)";
+            row.innerHTML = '<div><span class="badge ' + (n.isActive ? 'badge-green' : 'badge-absent') + '">' + (n.isActive ? 'Active' : 'Inactive') + '</span>' +
+              '<span style="font-size:0.85rem; margin-left:6px;">' + n.message + '</span></div>' +
+              '<div style="display:flex; gap:6px;"><button class="btn btn-outline btn-sm" onclick="toggleNoticeState(\'' + n.noticeId + '\', ' + (!n.isActive) + ')">Toggle</button>' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteNoticeRecord(\'' + n.noticeId + '\')">Delete</button></div>';
+            cont.appendChild(row);
+          });
+        })
+        .getAllNoticesAdmin();
+    }
+
+    function toggleNoticeState(id, state) {
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminNotices(); loadBootstrapData(); })
+        .toggleNoticeStatus(id, state, STATE.adminToken);
+    }
+
+    function deleteNoticeRecord(id) {
+      if (!confirm("Permanently delete this notice?")) return;
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminNotices(); loadBootstrapData(); })
+        .deleteNoticeAdmin(id, STATE.adminToken);
+    }
+
+    function submitTestRecord() {
+      var record = {
+        studentId: document.getElementById("testStdSelect").value,
+        studentName: document.getElementById("testStdSelect").options[document.getElementById("testStdSelect").selectedIndex].text,
+        subject: document.getElementById("testSubject").value.trim(),
+        date: document.getElementById("testDate").value,
+        marksObtained: document.getElementById("testObtained").value,
+        totalMarks: document.getElementById("testTotal").value
+      };
+      if (!record.subject || !record.marksObtained || !record.totalMarks) {
+        alert("Please complete test score fields.");
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Offline test score recorded!");
+          document.getElementById("testObtained").value = "";
+          refreshAdminTestMarks();
+        })
+        .addTestMarksRecord(record, STATE.adminToken);
+    }
+
+    function refreshAdminTestMarks() {
+      var tb = document.getElementById("testMarksAdminTableBody");
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading test marks...</td></tr>';
+      google.script.run
+        .withSuccessHandler(function(marks) {
+          tb.innerHTML = "";
+          if (!marks || marks.length === 0) {
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;">No test records found.</td></tr>';
+            return;
+          }
+          marks.slice(0, 25).forEach(function(m) {
+            var tr = document.createElement("tr");
+            var badgeClass = m.percentage >= 75 ? 'badge-green' : (m.percentage >= 50 ? 'badge-amber' : 'badge-red');
+            tr.innerHTML = '<td>' + m.date + '</td>' +
+              '<td style="font-weight:700;">' + m.studentName + '</td>' +
+              '<td>' + m.subject + '</td>' +
+              '<td>' + m.marksObtained + ' / ' + m.totalMarks + '</td>' +
+              '<td><span class="badge ' + badgeClass + '">' + m.percentage + '%</span></td>' +
+              '<td><button class="btn btn-danger btn-sm" onclick="deleteTestRecord(\'' + m.testId + '\')">Delete</button></td>';
+            tb.appendChild(tr);
+          });
+        })
+        .getAllTestMarksAdmin();
+    }
+
+    function deleteTestRecord(testId) {
+      if (!confirm("Permanently delete this test record?")) return;
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminTestMarks(); })
+        .deleteTestMarkAdmin(testId, STATE.adminToken);
+    }
+
+    function renderAdmissionsCMSContent(cfg) {
+      if (!cfg) return;
+      if (cfg.heroTitle) document.getElementById("pubHeroTitle").textContent = cfg.heroTitle;
+      if (cfg.heroBadge) document.getElementById("pubHeroBadge").textContent = cfg.heroBadge;
+      if (cfg.heroDescription) document.getElementById("pubHeroDesc").textContent = cfg.heroDescription;
+
+      if (cfg.pillar1Title) document.getElementById("pubPillar1Title").textContent = cfg.pillar1Title;
+      if (cfg.pillar1Desc) document.getElementById("pubPillar1Desc").textContent = cfg.pillar1Desc;
+      if (cfg.pillar2Title) document.getElementById("pubPillar2Title").textContent = cfg.pillar2Desc;
+      if (cfg.pillar2Desc) document.getElementById("pubPillar2Desc").textContent = cfg.pillar2Desc;
+      if (cfg.pillar3Title) document.getElementById("pubPillar3Title").textContent = cfg.pillar3Desc;
+      if (cfg.pillar3Desc) document.getElementById("pubPillar3Desc").textContent = cfg.pillar3Desc;
+
+      var elHeroTitle = document.getElementById("cmsHeroTitle"); if (elHeroTitle) elHeroTitle.value = cfg.heroTitle || "";
+      var elHeroBadge = document.getElementById("cmsHeroBadge"); if (elHeroBadge) elHeroBadge.value = cfg.heroBadge || "";
+      var elHeroDesc = document.getElementById("cmsHeroDesc"); if (elHeroDesc) elHeroDesc.value = cfg.heroDescription || "";
+
+      var p1t = document.getElementById("cmsPillar1Title"); if (p1t) p1t.value = cfg.pillar1Title || "";
+      var p1d = document.getElementById("cmsPillar1Desc"); if (p1d) p1d.value = cfg.pillar1Desc || "";
+      var p2t = document.getElementById("cmsPillar2Title"); if (p2t) p2t.value = cfg.pillar2Title || "";
+      var p2d = document.getElementById("cmsPillar2Desc"); if (p2d) p2d.value = cfg.pillar2Desc || "";
+      var p3t = document.getElementById("cmsPillar3Title"); if (p3t) p3t.value = cfg.pillar3Title || "";
+      var p3d = document.getElementById("cmsPillar3Desc"); if (p3d) p3d.value = cfg.pillar3Desc || "";
+
+      var selInterval = document.getElementById("cmsSlideshowInterval");
+      if (selInterval) selInterval.value = cfg.slideshowInterval || "5000";
+
+      STATE.batchSchedulesList = cfg.batchSchedules || [
+        { targetClass: "Std 9 & Std 10", subjects: "Maths & Science (Board Exam Focus)", timing: "Evening Batches", fee: "₹800 - ₹1000" },
+        { targetClass: "Std 6 to Std 8", subjects: "Maths, Science & Foundation", timing: "Flexible Slots", fee: "₹700 - ₹800" },
+        { targetClass: "Std 1 to Std 5", subjects: "Core Foundation & Numeracy", timing: "Afternoon Slots", fee: "₹600 - ₹700" }
+      ];
+
+      renderPublicBatchSchedulesTable();
+      renderAdminScheduleEditorTable();
+    }
+
+    function renderPublicBatchSchedulesTable() {
+      var tb = document.getElementById("pubBatchSchedulesBody");
+      if (!tb) return;
+      tb.innerHTML = "";
+      STATE.batchSchedulesList.forEach(function(b) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td><b>' + b.targetClass + '</b></td>' +
+          '<td>' + b.subjects + '</td>' +
+          '<td>' + b.timing + '</td>' +
+          '<td><b>' + b.fee + '</b></td>';
+        tb.appendChild(tr);
+      });
+    }
+
+    function renderAdminScheduleEditorTable() {
+      var tb = document.getElementById("adminScheduleEditorTbody");
+      if (!tb) return;
+      tb.innerHTML = "";
+
+      STATE.batchSchedulesList.forEach(function(b, idx) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td><input type="text" class="table-input" id="sched_cls_' + idx + '" value="' + b.targetClass + '"></td>' +
+          '<td><input type="text" class="table-input" id="sched_sub_' + idx + '" value="' + b.subjects + '"></td>' +
+          '<td><input type="text" class="table-input" id="sched_tim_' + idx + '" value="' + b.timing + '"></td>' +
+          '<td><input type="text" class="table-input" id="sched_fee_' + idx + '" value="' + b.fee + '"></td>' +
+          '<td><button class="btn btn-danger btn-sm" onclick="removeScheduleRowFromAdmin(' + idx + ')">✕</button></td>';
+        tb.appendChild(tr);
+      });
+    }
+
+    function addNewScheduleRowToAdminTable() {
+      STATE.batchSchedulesList.push({
+        targetClass: "Std " + (10 - STATE.batchSchedulesList.length),
+        subjects: "Maths & Science",
+        timing: "Evening Batch",
+        fee: "₹700"
+      });
+      renderAdminScheduleEditorTable();
+    }
+
+    function removeScheduleRowFromAdmin(idx) {
+      STATE.batchSchedulesList.splice(idx, 1);
+      renderAdminScheduleEditorTable();
+    }
+
+    function saveBatchScheduleFromAdminTable() {
+      var updated = [];
+      var tb = document.getElementById("adminScheduleEditorTbody");
+      var rows = tb.querySelectorAll("tr");
+
+      rows.forEach(function(r, idx) {
+        var cls = document.getElementById("sched_cls_" + idx).value.trim();
+        var sub = document.getElementById("sched_sub_" + idx).value.trim();
+        var tim = document.getElementById("sched_tim_" + idx).value.trim();
+        var fee = document.getElementById("sched_fee_" + idx).value.trim();
+        if (cls) {
+          updated.push({ targetClass: cls, subjects: sub, timing: tim, fee: fee });
+        }
+      });
+
+      STATE.batchSchedulesList = updated;
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Batch schedule and fee table updated!");
+          renderPublicBatchSchedulesTable();
+        })
+        .saveAcademyConfigAdmin({ batchSchedulesJson: JSON.stringify(updated) }, STATE.adminToken);
+    }
+
+    function initAutoSlideshow(mediaList, intervalMs) {
+      clearInterval(STATE.slideshowTimer);
+      if (!mediaList || mediaList.length === 0) return;
+      STATE.slideshowIndex = 0;
+      renderCurrentSlide();
+
+      STATE.slideshowTimer = setInterval(function() {
+        advanceSlideshow(1);
+      }, intervalMs || 5000);
+    }
+
+    function advanceSlideshow(step) {
+      var list = STATE.showcaseMedia;
+      if (!list || list.length === 0) return;
+      STATE.slideshowIndex = (STATE.slideshowIndex + step + list.length) % list.length;
+      renderCurrentSlide();
+    }
+
+    function renderCurrentSlide() {
+      var list = STATE.showcaseMedia;
+      if (!list || list.length === 0) return;
+      var cur = list[STATE.slideshowIndex];
+
+      var viewport = document.getElementById("activeSlideshowViewport");
+      var titleElem = document.getElementById("slideMediaTitle");
+      var descElem = document.getElementById("slideMediaDesc");
+      var indElem = document.getElementById("slideshowIndicator");
+
+      titleElem.textContent = cur.title || "Tuition Activity";
+      descElem.textContent = cur.description || (cur.mediaType === "VIDEO" ? "Demonstration Lesson" : "Classroom Photo");
+      indElem.textContent = "Slide " + (STATE.slideshowIndex + 1) + " of " + list.length;
+
+      if (cur.mediaType === "VIDEO") {
+        viewport.innerHTML = '<iframe src="' + cur.previewUrl + '" allow="autoplay"></iframe>';
+      } else {
+        viewport.innerHTML = '<img src="' + cur.imageUrl + '" alt="' + cur.title + '">';
+      }
+    }
+
+    function toggleSlideshowEnlargeStage() {
+      var viewport = document.getElementById("activeSlideshowViewport");
+      var btn = document.getElementById("btnToggle4x");
+      STATE.isSlideshowExpanded4x = !STATE.isSlideshowExpanded4x;
+      viewport.classList.toggle("stage-expanded-4x", STATE.isSlideshowExpanded4x);
+      btn.textContent = STATE.isSlideshowExpanded4x ? "🔍 Collapse 4x View" : "🔍 Toggle 4x View";
+    }
+
+    function saveAdmissionsCmsContent() {
+      var payload = {
+        heroTitle: document.getElementById("cmsHeroTitle").value.trim(),
+        heroBadge: document.getElementById("cmsHeroBadge").value.trim(),
+        heroDescription: document.getElementById("cmsHeroDesc").value.trim(),
+        pillar1Title: document.getElementById("cmsPillar1Title").value.trim(),
+        pillar1Desc: document.getElementById("cmsPillar1Desc").value.trim(),
+        pillar2Title: document.getElementById("cmsPillar2Title").value.trim(),
+        pillar2Desc: document.getElementById("cmsPillar2Desc").value.trim(),
+        pillar3Title: document.getElementById("cmsPillar3Title").value.trim(),
+        pillar3Desc: document.getElementById("cmsPillar3Desc").value.trim(),
+        slideshowInterval: document.getElementById("cmsSlideshowInterval").value
+      };
+
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Admissions copy & transition speed saved to Google Sheets!");
+          renderAdmissionsCMSContent(payload);
+          initAutoSlideshow(STATE.showcaseMedia, Number(payload.slideshowInterval));
+        })
+        .withFailureHandler(function(err) {
+          alert("Error saving: " + err.message);
+        })
+        .saveAcademyConfigAdmin(payload, STATE.adminToken);
+    }
+
+    function submitNewShowcaseMedia() {
+      var m = {
+        mediaType: document.getElementById("newMediaType").value,
+        title: document.getElementById("newMediaTitle").value.trim(),
+        description: document.getElementById("newMediaDesc").value.trim(),
+        driveLink: document.getElementById("newMediaDriveLink").value.trim()
+      };
+
+      if (!m.title || !m.driveLink) {
+        alert("Please provide both media title and Google Drive link.");
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function() {
+          alert("Media published to showcase!");
+          document.getElementById("newMediaTitle").value = "";
+          document.getElementById("newMediaDesc").value = "";
+          document.getElementById("newMediaDriveLink").value = "";
+          refreshAdminShowcaseMedia();
+          loadBootstrapData();
+        })
+        .withFailureHandler(function(err) {
+          alert("Error publishing: " + err.message);
+        })
+        .addShowcaseMediaAdmin(m, STATE.adminToken);
+    }
+
+    function refreshAdminShowcaseMedia() {
+      var cont = document.getElementById("adminShowcaseMediaList");
+      cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Loading showcase media...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          cont.innerHTML = "";
+          if (!list || list.length === 0) {
+            cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">No showcase media published yet.</div>';
+            return;
+          }
+          list.forEach(function(m) {
+            var row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.padding = "8px 12px";
+            row.style.border = "1px solid var(--border)";
+            row.style.borderRadius = "var(--radius-sm)";
+            row.style.background = "var(--surface)";
+            row.innerHTML = '<div><b style="font-size:0.85rem;">' + m.title + '</b><div style="font-size:0.75rem; color:var(--text-muted);">' + m.mediaType + ' • ' + (m.description || "") + '</div></div>' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteShowcaseMediaRecord(\'' + m.mediaId + '\')">Delete</button>';
+            cont.appendChild(row);
+          });
+        })
+        .getShowcaseMediaList();
+    }
+
+    function deleteShowcaseMediaRecord(id) {
+      if (!confirm("Remove this media from showcase?")) return;
+      google.script.run
+        .withSuccessHandler(function() {
+          refreshAdminShowcaseMedia();
+          loadBootstrapData();
+        })
+        .deleteShowcaseMediaAdmin(id, STATE.adminToken);
+    }
+
+    function submitOnlineInquiry() {
+      var sname = document.getElementById("inqStudentName").value.trim();
+      var tclass = document.getElementById("inqTargetClass").value;
+      var pname = document.getElementById("inqParentName").value.trim();
+      var phone = document.getElementById("inqPhone").value.trim();
+      var notes = document.getElementById("inqNotes").value.trim();
+
+      if (!sname || !phone) {
+        alert("Please enter at least Student Name and WhatsApp Contact Number.");
+        return;
+      }
+
+      var payload = {
+        studentName: sname,
+        targetClass: tclass,
+        parentName: pname,
+        phone: phone,
+        notes: notes
+      };
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            alert("Thank you! Your inquiry has been registered. Instructor Sahil Vadher will connect with you shortly.");
+            document.getElementById("inqStudentName").value = "";
+            document.getElementById("inqParentName").value = "";
+            document.getElementById("inqPhone").value = "";
+            document.getElementById("inqNotes").value = "";
+          }
+        })
+        .withFailureHandler(function(err) {
+          alert("Submission error: " + err.message);
+        })
+        .registerOnlineInquiry(payload);
+    }
+
+    function switchAdminTab(tabIdx) {
+      document.querySelectorAll(".admin-subtab-btn").forEach(function(btn, i) {
+        btn.classList.toggle("active", i === (tabIdx - 1));
+      });
+      for (var i = 1; i <= 7; i++) {
+        var el = document.getElementById("adminTab" + i);
+        if (el) el.classList.toggle("hidden", i !== tabIdx);
+      }
+
+      if (tabIdx === 2) refreshFeeLedger();
+      if (tabIdx === 3) { refreshRosterDirectory(); refreshInquiriesList(); }
+      if (tabIdx === 4) refreshAdminMaterials();
+      if (tabIdx === 5) { refreshAdminNotices(); refreshAdminTestMarks(); }
+      if (tabIdx === 6) { refreshAdminShowcaseMedia(); }
+      if (tabIdx === 7) { refreshAdminTestsList(); }
+    }
+  </script>
+
+  <!-- EXAMS & TESTS SCRIPTS -->
+  <script>
+    function fetchOnlineTestsCatalog() {
+      var c = document.getElementById("testClassFilter").value;
+      var s = document.getElementById("testSubjectFilter").value;
+      var cont = document.getElementById("testsCatalogFeed");
+      cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center;">Loading test papers...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(tests) {
+          STATE.onlineTestsCatalog = tests || [];
+          renderOnlineTestsCatalogFeed(STATE.onlineTestsCatalog);
+        })
+        .getOnlineTestsCatalog(c, s);
+    }
+
+    function renderOnlineTestsCatalogFeed(tests) {
+      var cont = document.getElementById("testsCatalogFeed");
+      if (!cont) return;
+      cont.innerHTML = "";
+
+      if (!tests || tests.length === 0) {
+        cont.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);">No active test papers found matching this selection.</div>';
+        return;
+      }
+
+      tests.forEach(function(t) {
+        var card = document.createElement("div");
+        card.className = "card";
+        card.style.marginBottom = "8px";
+        card.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
+          '<div><div style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">' + t.class + ' • ' + t.subject + ' • ⏱️ ' + t.durationMins + ' Mins</div>' +
+          '<b style="font-size:0.95rem;">' + t.title + '</b><div style="font-size:0.75rem; color:var(--text-muted);">' + (t.questionCount || 0) + ' Questions</div></div>' +
+          '<button class="btn btn-dark btn-sm" onclick="promptLaunchTest(\'' + t.testId + '\')">Start Test 🚀</button>' +
+          '</div>';
+        cont.appendChild(card);
+      });
+    }
+
+    var selectedTestToLaunch = null;
+    function promptLaunchTest(testId) {
+      selectedTestToLaunch = STATE.onlineTestsCatalog.find(function(t) { return t.testId === testId; });
+      if (!selectedTestToLaunch) return;
+
+      var nameInput = document.getElementById("testAuthStudentName");
+      var passInput = document.getElementById("testAuthPassword");
+      var passGroup = document.getElementById("testPasscodeInputGroup");
+      var desc = document.getElementById("testAuthDesc");
+
+      nameInput.value = "";
+      passInput.value = "";
+
+      if (STATE.isStudentAuthenticated) {
+        passGroup.classList.add("hidden");
+        desc.textContent = "Welcome Enrolled Student! Enter your name to enter the test arena.";
+      } else {
+        passGroup.classList.remove("hidden");
+        desc.textContent = "Enter your student name and the unique paper passcode provided by your instructor.";
+      }
+
+      document.getElementById("testAuthModal").classList.add("active");
+    }
+
+    function closeTestAuthModal() {
+      document.getElementById("testAuthModal").classList.remove("active");
+    }
+
+    function confirmTestLaunch() {
+      var sname = document.getElementById("testAuthStudentName").value.trim();
+      var passcode = document.getElementById("testAuthPassword").value.trim();
+
+      if (!sname) {
+        alert("Please enter student name.");
+        return;
+      }
+
+      var prepareAndStart = function() {
+        closeTestAuthModal();
+        google.script.run
+          .withSuccessHandler(function(questions) {
+            if (!questions || questions.length === 0) {
+              alert("No questions found for this test paper.");
+              return;
+            }
+            selectedTestToLaunch.questions = questions;
+            launchExamArena(selectedTestToLaunch, sname);
+          })
+          .getTestQuestionsByTestId(selectedTestToLaunch.testId);
+      };
+
+      if (STATE.isStudentAuthenticated) {
+        prepareAndStart();
+      } else {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.success) {
+              prepareAndStart();
+            } else {
+              alert(res.message || "Incorrect passcode.");
+            }
+          })
+          .verifyTestPasscode(selectedTestToLaunch.testId, passcode);
+      }
+    }
+
+    function toggleFreeAssessmentModal() {
+      var modal = document.getElementById("freeAssessmentModal");
+      modal.classList.toggle("active");
+    }
+
+    function startFreeDiagnosticArena() {
+      var sname = document.getElementById("freeDiagName").value.trim();
+      var sclass = document.getElementById("freeDiagClass").value;
+      var phone = document.getElementById("freeDiagPhone").value.trim();
+
+      if (!sname) {
+        alert("Please enter student name.");
+        return;
+      }
+
+      var btn = document.getElementById("btnLaunchDiagnostic");
+      btn.disabled = true;
+      btn.textContent = "Selecting 30 Questions... ⏳";
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = "Launch Free 30-Question Paper 🚀";
+          toggleFreeAssessmentModal();
+
+          if (!res || !res.success || !res.questions || res.questions.length === 0) {
+            alert("No diagnostic questions found for " + sclass);
+            return;
+          }
+
+          var testObj = {
+            testId: "FREE-DIAGNOSTIC",
+            title: sclass + " Foundational Diagnostic Assessment (30 Questions)",
+            class: sclass,
+            phone: phone,
+            durationMins: res.durationMins || 30,
+            questions: res.questions
+          };
+
+          launchExamArena(testObj, sname);
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = "Launch Free 30-Question Paper 🚀";
+          alert("Error fetching diagnostic paper: " + err.message);
+        })
+        .getDiagnosticTestForClass(sclass);
+    }
+
+    function launchExamArena(testObj, studentName) {
+      STATE.activeExam = {
+        test: testObj,
+        studentName: studentName,
+        answers: {}
+      };
+
+      document.getElementById("examArenaTestTitle").textContent = testObj.title;
+      document.getElementById("examArenaStudentInfo").textContent = studentName + " (" + testObj.class + ")";
+      
+      var cont = document.getElementById("examArenaQuestionsContainer");
+      cont.innerHTML = "";
+
+      testObj.questions.forEach(function(q, idx) {
+        var card = document.createElement("div");
+        card.className = "card";
+        card.style.marginBottom = "0";
+
+        var inputSection = "";
+        if (q.type === "NUMERICAL" || q.type === "FILL_BLANK") {
+          inputSection = '<div class="input-group" style="margin-top:10px;">' +
+            '<label class="input-label">Type Final Answer (Numerical or Word)</label>' +
+            '<input type="text" class="input-control" placeholder="Type your answer here..." onchange="recordExamAnswer(\'' + q.questionId + '\', this.value)">' +
+            '</div>';
+        } else {
+          inputSection = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">' +
+            ['A', 'B', 'C', 'D'].map(function(opt) {
+              return '<label style="display:flex; align-items:center; gap:8px; font-size:0.88rem; cursor:pointer;">' +
+                '<input type="radio" name="arena_q_' + q.questionId + '" value="' + opt + '" onchange="recordExamAnswer(\'' + q.questionId + '\', \'' + opt + '\')">' +
+                '<span><b>' + opt + '.</b> ' + (q['option' + opt] || '') + '</span></label>';
+            }).join('') + '</div>';
+        }
+
+        card.innerHTML = '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+          '<b style="font-size:0.92rem;">Q' + (idx + 1) + '. ' + q.question + '</b>' +
+          '<span class="badge badge-green">' + q.marks + ' Marks</span></div>' +
+          inputSection;
+        cont.appendChild(card);
+      });
+
+      STATE.examSecondsRemaining = (testObj.durationMins || 30) * 60;
+      clearInterval(STATE.examTimerInterval);
+      updateExamTimerDisplay();
+      STATE.examTimerInterval = setInterval(function() {
+        STATE.examSecondsRemaining--;
+        updateExamTimerDisplay();
+        if (STATE.examSecondsRemaining <= 0) {
+          clearInterval(STATE.examTimerInterval);
+          alert("Time is up! Submitting examination paper automatically.");
+          submitExamArenaAnswers();
+        }
+      }, 1000);
+
+      document.getElementById("examArena").classList.remove("hidden");
+      document.getElementById("mainFloatingBar").classList.add("hidden");
+      window.scrollTo(0, 0);
+
+      try { history.pushState({ inExam: true }, ""); } catch(e){}
+    }
+
+    function updateExamTimerDisplay() {
+      var mins = Math.floor(STATE.examSecondsRemaining / 60);
+      var secs = STATE.examSecondsRemaining % 60;
+      var str = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+      var disp = document.getElementById("examLiveTimerDisplay");
+      if (disp) disp.textContent = str;
+    }
+
+    function recordExamAnswer(qId, val) {
+      if (STATE.activeExam) {
+        STATE.activeExam.answers[qId] = val;
+      }
+    }
+
+    function exitExamArenaPrompt() {
+      if (!confirm("Are you sure you want to exit the examination arena? Progress will be lost.")) return;
+      clearInterval(STATE.examTimerInterval);
+      document.getElementById("examArena").classList.add("hidden");
+      document.getElementById("mainFloatingBar").classList.remove("hidden");
+      STATE.activeExam = null;
+    }
+
+    function submitExamArenaAnswers() {
+      clearInterval(STATE.examTimerInterval);
+      var isDiagnostic = (STATE.activeExam.test.testId === "FREE-DIAGNOSTIC");
+      var payload = {
+        testId: STATE.activeExam.test.testId,
+        studentName: STATE.activeExam.studentName,
+        targetClass: STATE.activeExam.test.class,
+        phone: STATE.activeExam.test.phone || "",
+        answers: STATE.activeExam.answers
+      };
+
+      document.getElementById("examArena").classList.add("hidden");
+      document.getElementById("mainFloatingBar").classList.remove("hidden");
+
+      if (isDiagnostic) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.success) {
+              document.getElementById("resModalTier").textContent = res.gradeTier;
+              document.getElementById("resModalPct").textContent = res.percentage + "%";
+              document.getElementById("resModalScore").textContent = res.score;
+              document.getElementById("resModalTotal").textContent = res.totalMarks;
+              document.getElementById("examResultModal").classList.add("active");
+            } else {
+              alert("Grading error: " + res.message);
+            }
+            STATE.activeExam = null;
+          })
+          .submitDiagnosticAssessment(payload);
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            document.getElementById("resModalTier").textContent = res.gradeTier;
+            document.getElementById("resModalPct").textContent = res.percentage + "%";
+            document.getElementById("resModalScore").textContent = res.score;
+            document.getElementById("resModalTotal").textContent = res.totalMarks;
+            document.getElementById("examResultModal").classList.add("active");
+          } else {
+            alert("Error grading test: " + res.message);
+          }
+          STATE.activeExam = null;
+        })
+        .submitOnlineTestAnswers(payload);
+    }
+
+    function closeExamResultModal() {
+      document.getElementById("examResultModal").classList.remove("active");
+    }
+
+    function refreshAdminTestsList() {
+      var tb = document.getElementById("adminTestsTableBody");
+      tb.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading tests catalog...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          tb.innerHTML = "";
+          if (!list || list.length === 0) {
+            tb.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No online tests registered. Create one above!</td></tr>';
+            return;
+          }
+
+          list.forEach(function(t) {
+            var tr = document.createElement("tr");
+            tr.innerHTML = '<td><span style="font-family:monospace; font-weight:800;">' + t.testId + '</span></td>' +
+              '<td><b>' + t.title + '</b></td>' +
+              '<td>' + t.class + ' • ' + t.subject + '</td>' +
+              '<td><input type="number" class="table-input" id="adm_dur_' + t.testId + '" value="' + t.durationMins + '" style="width:75px;" placeholder="Mins"></td>' +
+              '<td><input type="text" class="table-input" id="adm_pass_' + t.testId + '" value="' + (t.passcode || '') + '" style="width:115px;" placeholder="No passcode"></td>' +
+              '<td><span class="badge badge-green">' + t.questionCount + ' Qs</span></td>' +
+              '<td><button class="btn btn-outline btn-sm" onclick="toggleTestActiveState(\'' + t.testId + '\', ' + (!t.isActive) + ')">' + (t.isActive ? 'Active ✓' : 'Disabled ✕') + '</button></td>' +
+              '<td style="white-space:nowrap;">' +
+              '<button class="btn btn-dark btn-sm" onclick="openQuestionsEditorModal(\'' + t.testId + '\', \'' + t.title.replace(/'/g, "\\'") + '\', \'' + t.class + '\', \'' + t.subject + '\')">✏️ Edit Questions</button> ' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteTestPaperAdmin(\'' + t.testId + '\')">✕</button>' +
+              '</td>';
+            tb.appendChild(tr);
+          });
+        })
+        .getOnlineTestsAdminList(STATE.adminToken);
+    }
+
+    function submitNewTestPaper() {
+      var tObj = {
+        class: document.getElementById("newTestClass").value,
+        subject: document.getElementById("newTestSubject").value,
+        title: document.getElementById("newTestTitle").value.trim(),
+        durationMins: document.getElementById("newTestDuration").value,
+        passcode: document.getElementById("newTestPasscode").value.trim()
+      };
+
+      if (!tObj.title) {
+        alert("Please enter a test paper title.");
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            alert("Test Paper " + res.testId + " created! Now add questions to it.");
+            document.getElementById("newTestTitle").value = "";
+            document.getElementById("newTestPasscode").value = "";
+            refreshAdminTestsList();
+          }
+        })
+        .createOnlineTestAdmin(tObj, STATE.adminToken);
+    }
+
+    function toggleTestActiveState(testId, state) {
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminTestsList(); })
+        .toggleOnlineTestStatusAdmin(testId, state, STATE.adminToken);
+    }
+
+    function deleteTestPaperAdmin(testId) {
+      if (!confirm("Permanently delete test " + testId + " and ALL its questions?")) return;
+      google.script.run
+        .withSuccessHandler(function() { refreshAdminTestsList(); })
+        .deleteOnlineTestAdmin(testId, STATE.adminToken);
+    }
+
+    function openQuestionsEditorModal(testId, title, sclass, subject) {
+      STATE.activeEditingTestId = testId;
+      document.getElementById("qEditorTitle").textContent = "Editing: " + title;
+      document.getElementById("qEditorSub").textContent = testId + " • " + sclass + " • " + subject;
+
+      var cont = document.getElementById("qEditorListContainer");
+      cont.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Fetching questions from QuestionBank...</div>';
+      document.getElementById("questionsEditorModal").classList.add("active");
+
+      google.script.run
+        .withSuccessHandler(function(questions) {
+          STATE.activeEditingQuestions = questions || [];
+          renderQuestionsInEditor();
+        })
+        .getTestQuestionsAdmin(testId, STATE.adminToken);
+    }
+
+    function closeQuestionsEditorModal() {
+      document.getElementById("questionsEditorModal").classList.remove("active");
+      STATE.activeEditingTestId = null;
+      STATE.activeEditingQuestions = [];
+    }
+
+    function renderQuestionsInEditor() {
+      var cont = document.getElementById("qEditorListContainer");
+      cont.innerHTML = "";
+
+      if (STATE.activeEditingQuestions.length === 0) {
+        cont.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px; background:var(--surface-subtle); border-radius:var(--radius-sm);">No questions found for this test. Click "+ Add New Question" below to add one!</div>';
+        return;
+      }
+
+      STATE.activeEditingQuestions.forEach(function(q, idx) {
+        var card = document.createElement("div");
+        card.style.background = "var(--surface-subtle)";
+        card.style.border = "1px solid var(--border)";
+        card.style.borderRadius = "var(--radius-sm)";
+        card.style.padding = "12px";
+
+        var isMcq = (q.questionType === "MCQ");
+
+        var mcqOptionsHtml = '<div id="q_mcq_grp_' + idx + '" style="' + (isMcq ? '' : 'display:none;') + ' margin-top:8px;">' +
+          '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">' +
+          '<input type="text" class="input-control" placeholder="Option A" value="' + (q.optionA || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].optionA = this.value">' +
+          '<input type="text" class="input-control" placeholder="Option B" value="' + (q.optionB || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].optionB = this.value">' +
+          '<input type="text" class="input-control" placeholder="Option C" value="' + (q.optionC || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].optionC = this.value">' +
+          '<input type="text" class="input-control" placeholder="Option D" value="' + (q.optionD || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].optionD = this.value">' +
+          '</div></div>';
+
+        card.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+          '<b>Question #' + (idx + 1) + ' (' + (q.questionId || 'NEW') + ')</b>' +
+          '<button class="btn btn-danger btn-sm" onclick="removeQuestionFromEditor(' + idx + ')">✕ Delete</button>' +
+          '</div>' +
+          '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; margin-bottom:6px;">' +
+          '<input type="text" class="input-control" placeholder="Question text..." value="' + (q.question || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].question = this.value">' +
+          '<select class="input-control" onchange="onEditorQuestionTypeChanged(' + idx + ', this.value)">' +
+          '<option value="MCQ" ' + (isMcq ? 'selected' : '') + '>MCQ (A/B/C/D)</option>' +
+          '<option value="NUMERICAL" ' + (q.questionType === 'NUMERICAL' ? 'selected' : '') + '>Numerical Answer</option>' +
+          '<option value="FILL_BLANK" ' + (q.questionType === 'FILL_BLANK' ? 'selected' : '') + '>Fill in the Blank</option>' +
+          '</select>' +
+          '<input type="number" class="input-control" placeholder="Marks" value="' + (q.marks || 1) + '" onchange="STATE.activeEditingQuestions[' + idx + '].marks = Number(this.value)||1">' +
+          '</div>' +
+          mcqOptionsHtml +
+          '<div style="margin-top:6px; display:flex; align-items:center; gap:8px;">' +
+          '<span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Correct Answer:</span>' +
+          '<input type="text" class="input-control" style="width:160px;" placeholder="e.g. B or 24 or word" value="' + (q.correctAnswer || '') + '" onchange="STATE.activeEditingQuestions[' + idx + '].correctAnswer = this.value">' +
+          '</div>';
+
+        cont.appendChild(card);
+      });
+    }
+
+    function onEditorQuestionTypeChanged(idx, newType) {
+      STATE.activeEditingQuestions[idx].questionType = newType;
+      var grp = document.getElementById("q_mcq_grp_" + idx);
+      if (grp) grp.style.display = (newType === "MCQ") ? "block" : "none";
+    }
+
+    function addNewBlankQuestionToEditor() {
+      STATE.activeEditingQuestions.push({
+        questionId: "Q-" + Math.floor(1000 + Math.random() * 9000),
+        testId: STATE.activeEditingTestId,
+        questionType: "MCQ",
+        question: "",
+        optionA: "",
+        optionB: "",
+        optionC: "",
+        optionD: "",
+        correctAnswer: "A",
+        marks: 1
+      });
+      renderQuestionsInEditor();
+    }
+
+    function removeQuestionFromEditor(idx) {
+      STATE.activeEditingQuestions.splice(idx, 1);
+      renderQuestionsInEditor();
+    }
+
+    function saveQuestionsFromEditor() {
+      if (!STATE.activeEditingTestId) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            alert("Success! " + res.count + " questions saved directly to QuestionBank sheet.");
+            closeQuestionsEditorModal();
+            refreshAdminTestsList();
+          } else {
+            alert("Error saving questions: " + res.message);
+          }
+        })
+        .batchSaveTestQuestionsAdmin(STATE.activeEditingTestId, STATE.activeEditingQuestions, STATE.adminToken);
+    }
+  </script>
+
+</body>
+</html>
