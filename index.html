@@ -8,7 +8,7 @@
   
   <script>
     /**
-     * APPS SCRIPT JSONP API BRIDGE (100% CORS-FREE)
+     * APPS SCRIPT API BRIDGE (FOLLOW REDIRECTS)
      */
     window.SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzgh5DnhrBZtPkyo82UOK7Yna5aT0f5r7e31JXrVNzbIp1wr5fg9u2s1vewJ5bbH5aB/exec";
 
@@ -29,35 +29,26 @@
 
     ScriptRunBridge.prototype.callApi = function(action, payload) {
       var self = this;
-      var cbName = "jsonp_cb_" + Math.round(100000 * Math.random()) + "_" + Date.now();
-      
-      var script = document.createElement("script");
-      var cleanup = function() {
-        if (script.parentNode) script.parentNode.removeChild(script);
-        delete window[cbName];
-      };
+      var url = window.SCRIPT_API_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
 
-      // Define callback function in global scope
-      window[cbName] = function(json) {
-        cleanup();
+      fetch(url, {
+        method: "GET",
+        mode: "cors",
+        redirect: "follow"
+      })
+      .then(function(res) {
+        return res.json();
+      })
+      .then(function(json) {
         if (json && json.success) {
           self.successHandler(json.data);
         } else {
           self.failureHandler(new Error((json && json.message) ? json.message : "API execution error"));
         }
-      };
-
-      script.onerror = function() {
-        cleanup();
-        self.failureHandler(new Error("Network request failed while connecting to Google Apps Script."));
-      };
-
-      var query = "?action=" + encodeURIComponent(action) +
-                  "&payload=" + encodeURIComponent(JSON.stringify(payload || {})) +
-                  "&callback=" + encodeURIComponent(cbName);
-
-      script.src = window.SCRIPT_API_URL + query;
-      document.head.appendChild(script);
+      })
+      .catch(function(err) {
+        self.failureHandler(err);
+      });
     };
 
     function createRunProxy(initialBridge) {
