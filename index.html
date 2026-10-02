@@ -61,6 +61,51 @@
       opacity: 1;
     }
 
+    /* Floating Native Install App Banner */
+    #pwaInstallBar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99999;
+      background: #151921;
+      border: 1px solid #10B981;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+      border-radius: 30px;
+      padding: 6px 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeInSlide 0.3s ease;
+    }
+    @keyframes fadeInSlide {
+      from { top: -20px; opacity: 0; }
+      to { top: 10px; opacity: 1; }
+    }
+    #pwaInstallBar span {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #F9FAFB;
+    }
+    #btnPwaInstall {
+      background: #10B981;
+      color: #FFFFFF;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    #btnPwaDismiss {
+      background: transparent;
+      border: none;
+      color: #9CA3AF;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
     /* Branded Zero-Dependency Dark Skeleton */
     #skeletonLoader {
       position: fixed;
@@ -124,6 +169,13 @@
 </head>
 <body>
 
+  <!-- Floating Install App Button for Visitors & Parents -->
+  <div id="pwaInstallBar">
+    <span>📲 Install SKY EduTrack App</span>
+    <button id="btnPwaInstall" onclick="handlePwaInstallClick()">Install</button>
+    <button id="btnPwaDismiss" onclick="dismissPwaBanner()">✕</button>
+  </div>
+
   <!-- Instant Brand Skeleton Shell -->
   <div id="skeletonLoader">
     <div class="sk-pulse sk-header"></div>
@@ -142,6 +194,50 @@
   </div>
 
   <script>
+    var deferredInstallPrompt = null;
+
+    // Capture standard install prompt (Chrome, Edge, Android, Laptop)
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      var bar = document.getElementById('pwaInstallBar');
+      if (bar) bar.style.display = 'flex';
+    });
+
+    // Detect if already launched as standalone installed app
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      var bar = document.getElementById('pwaInstallBar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    // iPhone/iOS Safari detection
+    var isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    if (isIos && !window.navigator.standalone) {
+      var bar = document.getElementById('pwaInstallBar');
+      if (bar) bar.style.display = 'flex';
+    }
+
+    function handlePwaInstallClick() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(function(choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            dismissPwaBanner();
+          }
+          deferredInstallPrompt = null;
+        });
+      } else if (isIos) {
+        alert("To install SKY EduTrack on iPhone:\n1. Tap the Share button (square with arrow up) at the bottom.\n2. Scroll down and tap 'Add to Home Screen ➕'.");
+      } else {
+        alert("App installation ready! Tap your browser options menu and choose 'Install App' or 'Add to Home screen'.");
+      }
+    }
+
+    function dismissPwaBanner() {
+      var bar = document.getElementById('pwaInstallBar');
+      if (bar) bar.style.display = 'none';
+    }
+
     function dismissSkeleton() {
       var loader = document.getElementById('skeletonLoader');
       var frame = document.getElementById('appFrame');
